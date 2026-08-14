@@ -13,6 +13,7 @@ struct YTAuth: Codable, Equatable {
     var email: String?   // display only, optional
     var name: String?    // account display name
     var photo: String?   // account avatar URL
+    var brandId: String? // brand account ID for onBehalfOfUser; nil for primary
 }
 
 enum AuthStore {
