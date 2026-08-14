@@ -11,23 +11,27 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
     private var notch: NotchController?
+    private var mode: AppModeController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let s = AppServices.shared
         menuBar = MenuBarController(player: s.player)
         notch = NotchController(player: s.player)
+        mode = s.mode
 
-        s.mode.onChange = { [weak self] mode in self?.apply(mode) }
-        apply(s.mode.mode)
+        s.mode.onChange = { [weak self] in self?.apply() }
+        apply()
     }
 
-    private func apply(_ mode: AppModeController.Mode) {
+    private func apply() {
+        guard let mode else { return }
         let notchOK = notch?.isNotchAvailable ?? false
-        let showNotch = (mode == .notch || mode == .both) && notchOK
-        // Menu bar is the fallback: also shown when notch was asked for but none exists.
-        let showMenuBar = mode == .menuBar || mode == .both || (mode == .notch && !notchOK)
+        let showNotch = mode.mode == .notch && notchOK
+        // On a notch Mac the mode picker decides; a non-notch Mac has no
+        // fallback surface, so its own on/off toggle decides instead.
+        let showMenuBar = notchOK ? (mode.mode == .menuBar) : mode.menuBarIconVisible
 
-        Log.player.info("display mode → \(mode.rawValue, privacy: .public) (notch available \(notchOK)) ⇒ notch \(showNotch) menuBar \(showMenuBar)")
+        Log.player.info("display mode → \(mode.mode.rawValue, privacy: .public) (notch available \(notchOK)) ⇒ notch \(showNotch) menuBar \(showMenuBar)")
         showNotch ? notch?.show() : notch?.hide()
         showMenuBar ? menuBar?.install() : menuBar?.remove()
     }

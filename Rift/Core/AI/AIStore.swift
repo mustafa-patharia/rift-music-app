@@ -50,16 +50,24 @@ final class AIStore: ObservableObject {
 /// The feature-facing facade — routes each task to the selected provider.
 enum AI {
 
-    /// Devanagari lyrics → Hinglish. Stanza-chunked so long lyrics fit small
-    /// local models' context windows; fresh session/request per chunk.
+    /// Lyrics in ANY non-Latin script → their standard Latin-letter
+    /// romanization (Hindi → Hinglish, Korean → Revised Romanization,
+    /// Mandarin → Pinyin, Russian → BGN/PCGN, Malayalam → the transliteration
+    /// fans post online, etc.) — singable, not translated. Stanza-chunked so
+    /// long lyrics fit small local models' context windows; fresh
+    /// session/request per chunk.
     @MainActor
-    static func hinglish(_ lyrics: String) async throws -> String {
+    static func romanize(_ lyrics: String) async throws -> String {
         let instructions = """
-        You transliterate Hindi song lyrics from Devanagari script into \
-        Hinglish — Hindi written in Latin letters, the natural way Indians \
-        type it in chat (e.g. "तेरे इश्क़ में" → "tere ishq mein"). Do NOT \
-        translate into English. Keep every line break exactly where it is. \
-        Lines already in Latin letters stay unchanged. Output only the \
+        You transliterate song lyrics into the Latin alphabet, using \
+        whichever romanization convention native speakers and fans actually \
+        use for that language online (e.g. Hindi Devanagari → Hinglish like \
+        "तेरे इश्क़ में" → "tere ishq mein"; Korean Hangul → Revised \
+        Romanization; Mandarin Hanzi → Pinyin; Russian Cyrillic → standard \
+        transliteration; Malayalam script → common fan transliteration). Do \
+        NOT translate the meaning into English — only convert the script so \
+        it can be sung. Keep every line break exactly where it is. Lines \
+        already in Latin letters stay unchanged. Output only the \
         transliterated lyrics, nothing else.
         """
         var out: [String] = []
@@ -92,6 +100,23 @@ enum AI {
         recognizer.processString(String(text.prefix(400)))
         guard let lang = recognizer.dominantLanguage else { return false }
         return lang != .english
+    }
+
+    /// Any character outside Latin/common-punctuation blocks → offer
+    /// romanization (Hindi, Korean, Chinese, Russian, Malayalam, etc. all
+    /// qualify; this is a script check, independent of `isNonEnglish`'s
+    /// language check, so e.g. romanized Hindi already in Latin letters
+    /// correctly does NOT re-offer romanization).
+    static func hasNonLatinScript(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x0000...0x024F,   // Basic Latin, Latin-1 Supplement, Latin Extended A/B
+                 0x2000...0x206F:   // general punctuation (dashes, quotes, etc.)
+                return false
+            default:
+                return scalar.properties.isAlphabetic
+            }
+        }
     }
 
     @MainActor

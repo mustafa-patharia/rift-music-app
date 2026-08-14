@@ -45,16 +45,25 @@ struct SettingsPanelView: View {
                 }
                 .padding(.bottom, 4)
 
-                section("Player Display",
-                        footer: mode.mode != .menuBar && !NotchDetector.hasNotch
-                            ? "No notch on this Mac — falling back to the menu bar."
-                            : "Menu bar shows a mini player in the status bar. Notch turns the camera housing into a dynamic island.") {
-                    row("Show player in") {
-                        Picker("", selection: $mode.mode) {
-                            ForEach(AppModeController.Mode.allCases) { Text($0.label).tag($0) }
+                if NotchDetector.hasNotch {
+                    section("Player Display",
+                            footer: "Menu bar shows a mini player in the status bar. Notch turns the camera housing into a dynamic island.") {
+                        row("Show player in") {
+                            Picker("", selection: $mode.mode) {
+                                ForEach(AppModeController.Mode.allCases) { Text($0.label).tag($0) }
+                            }
+                            .pickerStyle(.segmented).labelsHidden()
+                            .frame(width: 340)
                         }
-                        .pickerStyle(.segmented).labelsHidden()
-                        .frame(width: 340)
+                    }
+                } else {
+                    section("Player Display",
+                            footer: "No notch on this Mac. Playback controls are always in the main window; " +
+                                    "this adds a quick mini player in the status bar too.") {
+                        row("Show menu bar icon") {
+                            Toggle("", isOn: $mode.menuBarIconVisible)
+                                .toggleStyle(.switch).labelsHidden().controlSize(.small)
+                        }
                     }
                 }
 

@@ -43,7 +43,7 @@ struct OnboardingView: View {
                         if page == index { pageContent(index).transition(pageTransition) }
                     }
                 }
-                .frame(maxWidth: 560)
+                .frame(maxWidth: 660)
 
                 Spacer(minLength: 0)
 
@@ -65,17 +65,23 @@ struct OnboardingView: View {
                  title: "Welcome to Rift",
                  body: "A native macOS player for YouTube Music — its catalogue and recommendations, in an app that belongs on your Mac.")
         case 1:
-            Page(art: { NotchArt(reduceMotion: reduceMotion) },
-                 title: "Lives in the notch",
-                 body: "Now playing peeks out of the notch while the music runs. Hover to expand into full transport — or switch it to a menu-bar player instead.")
+            if NotchDetector.hasNotch {
+                Page(art: { NotchArt(reduceMotion: reduceMotion) },
+                     title: "Lives in the notch",
+                     body: "Now playing peeks out of the notch while the music runs. Hover to expand into full transport — or switch it to a menu-bar player instead.")
+            } else {
+                Page(art: { MenuBarArt(reduceMotion: reduceMotion) },
+                     title: "Lives in your menu bar",
+                     body: "Now playing sits as a quick control in the status bar, always one click away — on top of the full player in the main window.")
+            }
         case 2:
             Page(art: { OfflineArt(reduceMotion: reduceMotion) },
-                 title: "Take it offline",
+                 title: "Play Offline",
                  body: "Download any track, album or playlist and it plays with the network off — alongside your own local files in one library.")
         case 3:
             Page(art: { LyricsArt(reduceMotion: reduceMotion) },
                  title: "Lyrics that make sense",
-                 body: "Read along in the full-screen player, and turn other-language lyrics into something you can sing — processed on your Mac, off by default.")
+                 body: "Read along in the full-screen player. Any script romanizes so you can sing along, and any language translates to English — processed on your Mac, off by default.")
         default:
             SignInPage(auth: auth, onDone: onDone)
         }
@@ -333,6 +339,62 @@ private struct NotchArt: View {
     }
 }
 
+// MARK: - Illustration 2b · the menu bar (non-notch Macs)
+
+private struct MenuBarArt: View {
+    let reduceMotion: Bool
+    @State private var dropdownIn = false
+    @State private var detailsIn = false
+
+    var body: some View {
+        VStack(spacing: 10) {
+            // The menu bar strip, with the status item picked out.
+            HStack {
+                Spacer()
+                HStack(spacing: 12) {
+                    Capsule().fill(.white.opacity(0.25)).frame(width: 16, height: 6)
+                    Capsule().fill(.white.opacity(0.25)).frame(width: 16, height: 6)
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(LinearGradient(colors: [.orange, .pink],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 18, height: 18)
+                }
+                .padding(.trailing, 14)
+            }
+            .frame(height: 26)
+            .background(.black.opacity(0.5))
+
+            // The dropdown that opens beneath the status item.
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(LinearGradient(colors: [.orange, .pink],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 36, height: 36)
+                if detailsIn {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Capsule().fill(.white.opacity(0.85)).frame(width: 84, height: 6)
+                        Capsule().fill(.white.opacity(0.4)).frame(width: 56, height: 5)
+                    }
+                    .transition(.opacity.combined(with: .offset(x: -6)))
+                }
+                Spacer(minLength: 0)
+                EqualizerBars(reduceMotion: reduceMotion)
+                    .frame(width: 22, height: 26)
+            }
+            .padding(14)
+            .frame(width: 220)
+            .liquidGlass(in: .rect(cornerRadius: 14))
+            .opacity(dropdownIn ? 1 : 0)
+            .offset(y: dropdownIn ? 0 : -8)
+        }
+        .frame(width: 300)
+        .onAppear {
+            play(reduceMotion, $dropdownIn, .spring(response: 0.5, dampingFraction: 0.78), delay: 0.35)
+            play(reduceMotion, $detailsIn, .easeOut(duration: 0.25), delay: 0.65)
+        }
+    }
+}
+
 private struct EqualizerBars: View {
     let reduceMotion: Bool
     @State private var tall = false
@@ -444,22 +506,41 @@ private struct OfflineArt: View {
 
 private struct LyricsArt: View {
     let reduceMotion: Bool
-    @State private var translated = false
+    @State private var lang = 0
     @State private var linesIn = false
+    @State private var loopTask: Task<Void, Never>?
 
-    // Illustrative only — a line of Devanagari and its transliteration.
-    private let original = ["तेरे इश्क़ में", "मैं डूब गया", "हर धड़कन में"]
-    private let latin = ["Tere ishq mein", "Main doob gaya", "Har dhadkan mein"]
+    // "Silent Night" — melody and lyrics from 1818, public domain worldwide,
+    // no rights holder. Real traditional sung versions per language (not
+    // fan translations), so this is an actual multi-language song rather
+    // than placeholder text — safe to bake into the shipped binary, unlike
+    // a copyrighted song's lyrics or artwork would be.
+    private let languages: [(label: String, lines: [String])] = [
+        ("English",    ["Silent night, holy night", "All is calm, all is bright", "Round yon virgin, mother and child"]),
+        ("Hindi",      ["Maun raat, pavitra raat", "Chaaron or shanti, chaaron or ujiyaara", "Kanya maata aur shishu ke sang"]),
+        ("Japanese",   ["きよしこの夜 星は光り", "救いの御子は 馬槽の中に", "眠りたもう いと安く"]),
+        ("German",     ["Stille Nacht, heilige Nacht", "Alles schläft, einsam wacht", "Nur das traute hochheilige Paar"]),
+        ("Korean",     ["고요한 밤 거룩한 밤", "어둠에 묻힌 밤", "주의 부모 앉아서"]),
+        ("Spanish",    ["Noche de paz, noche de amor", "Todo duerme en derredor", "Entre los astros que esparcen su luz"]),
+        ("Chinese",    ["平安夜 圣善夜", "万暗中 光华射", "照著聖母 也照著聖嬰"]),
+        ("French",     ["Douce nuit, sainte nuit", "Dans les cieux, l'astre luit", "Le mystère annoncé s'accomplit"]),
+        ("Italian",    ["Astro del ciel, Pargol divin", "Mite Agnello Redentor", "Tu che i Vati da lungi sognar"]),
+        ("Portuguese", ["Noite feliz, noite feliz", "Ó Senhor, Deus de amor", "Pobrezinho nasceu em Belém"]),
+    ]
+
+    private var current: (label: String, lines: [String]) { languages[lang] }
 
     var body: some View {
         VStack(spacing: 18) {
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(original.indices, id: \.self) { line in
-                    Text(translated ? latin[line] : original[line])
-                        .font(.system(size: line == 1 ? 21 : 17, weight: line == 1 ? .semibold : .regular))
-                        .foregroundStyle(line == 1 ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+            VStack(spacing: 10) {
+                ForEach(current.lines.indices, id: \.self) { line in
+                    let center = line == 1
+                    Text(current.lines[line])
+                        .font(.system(size: center ? 22 : 14, weight: center ? .semibold : .regular))
+                        .foregroundStyle(center ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+                        .multilineTextAlignment(.center)
                         .contentTransition(.opacity)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity)
                         .opacity(linesIn ? 1 : 0)
                         .offset(y: linesIn ? 0 : 8)
                         .animation(reduceMotion ? nil
@@ -468,28 +549,43 @@ private struct LyricsArt: View {
                                    value: linesIn)
                 }
             }
-            .padding(.horizontal, 22)
-            .padding(.vertical, 18)
-            .frame(width: 300, alignment: .leading)
-            .liquidGlass(in: RoundedRectangle(cornerRadius: 20))
+            .padding(.horizontal, 26)
+            .frame(width: 640)
 
             HStack(spacing: 7) {
-                Image(systemName: "character.book.closed")
+                Image(systemName: "sparkles")
                     .font(.callout.weight(.bold))
-                Text(translated ? "Hinglish" : "Original")
+                Text(current.label)
                     .contentTransition(.opacity)
+                Text("· AI")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.secondary)
             }
             .font(.callout.weight(.semibold))
             .foregroundStyle(Color.accentColor)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .liquidGlass(in: Capsule())
-            .scaleEffect(translated ? 1.04 : 1)
         }
         .onAppear {
             linesIn = true
-            // One flip, not a loop — it shows what the control does, then stops.
-            play(reduceMotion, $translated, .smooth(duration: 0.45), delay: 1.1)
+            guard !reduceMotion else { return }
+            loopTask = Task { await cycle() }
+        }
+        .onDisappear { loopTask?.cancel(); loopTask = nil }
+    }
+
+    // The middle line stays the sung/focused one throughout — only the
+    // language changes. Slow, gentle crossfade; this page loops for as long
+    // as it's on screen, unlike the others' one-shot reveal, since its whole
+    // point is demonstrating breadth across languages.
+    private func cycle() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(2.2))
+            if Task.isCancelled { return }
+            withAnimation(.smooth(duration: 0.9)) {
+                lang = (lang + 1) % languages.count
+            }
         }
     }
 }

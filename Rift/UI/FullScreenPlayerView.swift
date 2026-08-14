@@ -18,9 +18,9 @@ struct FullScreenPlayerView: View {
     @State private var lyrics: String?
     @State private var lyricsState: LyricsState = .idle
     // AI lyric views (local model via AI facade) — cached per track.
-    private enum LyricsDisplay { case original, hinglish, english }
+    private enum LyricsDisplay { case original, romanized, english }
     @State private var display: LyricsDisplay = .original
-    @State private var hinglish: String?
+    @State private var romanized: String?
     @State private var english: String?
     @State private var aiWorking = false
 
@@ -207,25 +207,26 @@ struct FullScreenPlayerView: View {
 
     private var displayedLyrics: String {
         switch display {
-        case .original: return lyrics ?? ""
-        case .hinglish: return hinglish ?? lyrics ?? ""
-        case .english:  return english ?? lyrics ?? ""
+        case .original:  return lyrics ?? ""
+        case .romanized: return romanized ?? lyrics ?? ""
+        case .english:   return english ?? lyrics ?? ""
         }
     }
 
     // Language menu — AI lyric views (all on the local model, per Settings):
-    // Hinglish for Devanagari lyrics, English translation for any non-English
-    // lyrics. Hidden until an AI provider is enabled in Settings.
+    // romanization for any non-Latin script (Hindi, Korean, Chinese, Russian,
+    // Malayalam, …), English translation for any non-English lyrics. Hidden
+    // until an AI provider is enabled in Settings.
     @ViewBuilder private var lyricsAIMenu: some View {
         if lyricsState == .loaded, let text = lyrics, ai.isReady,
-           AppleAI.hasDevanagari(text) || AI.isNonEnglish(text) {
+           AI.hasNonLatinScript(text) || AI.isNonEnglish(text) {
             Menu {
                 Button { display = .original } label: {
                     display == .original ? Label("Original", systemImage: "checkmark") : Label("Original", systemImage: "")
                 }
-                if AppleAI.hasDevanagari(text) {
-                    Button { switchTo(.hinglish, text) } label: {
-                        display == .hinglish ? Label("Hinglish", systemImage: "checkmark") : Label("Hinglish", systemImage: "")
+                if AI.hasNonLatinScript(text) {
+                    Button { switchTo(.romanized, text) } label: {
+                        display == .romanized ? Label("Romanized", systemImage: "checkmark") : Label("Romanized", systemImage: "")
                     }
                 }
                 if AI.isNonEnglish(text) {
@@ -252,15 +253,15 @@ struct FullScreenPlayerView: View {
 
     private func switchTo(_ target: LyricsDisplay, _ text: String) {
         // Cached → instant flip; otherwise run the model once and cache.
-        if (target == .hinglish && hinglish != nil) || (target == .english && english != nil) {
+        if (target == .romanized && romanized != nil) || (target == .english && english != nil) {
             display = target; return
         }
         aiWorking = true
         Task {
             defer { aiWorking = false }
             switch target {
-            case .hinglish:
-                if let r = try? await AI.hinglish(text) { hinglish = r; display = .hinglish }
+            case .romanized:
+                if let r = try? await AI.romanize(text) { romanized = r; display = .romanized }
             case .english:
                 if let r = try? await AI.translate(text) { english = r; display = .english }
             case .original: break
@@ -270,9 +271,9 @@ struct FullScreenPlayerView: View {
 
     private func loadLyrics() async {
         guard let id = player.track?.id, URL(string: id)?.isFileURL != true else {
-            lyricsState = .none; lyrics = nil; hinglish = nil; english = nil; display = .original; return
+            lyricsState = .none; lyrics = nil; romanized = nil; english = nil; display = .original; return
         }
-        hinglish = nil; english = nil; display = .original
+        romanized = nil; english = nil; display = .original
         lyricsState = .loading; lyrics = nil
         let text = try? await InnerTubeClient.lyrics(videoId: id)
         if let text, !text.isEmpty { lyrics = text; lyricsState = .loaded }
