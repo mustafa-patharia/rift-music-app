@@ -6,6 +6,7 @@
 // desktop wallpaper blurs through (VisualEffectBackground + WindowConfigurator).
 
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @EnvironmentObject var player: PlayerController
@@ -14,6 +15,7 @@ struct ContentView: View {
     @ObservedObject private var playlistStore = PlaylistStore.shared
     @State private var panel: Panel = .home
     @State private var newPlaylistName = ""
+    @AppStorage("hasOnboarded") private var hasOnboarded = false
 
     private var hasTrack: Bool { player.track != nil }
 
@@ -99,6 +101,7 @@ struct ContentView: View {
             w.styleMask.insert(.fullSizeContentView)
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
+            applyWindowSize(w)
         })
         // Home feed is cached in HomeStore — re-personalize it on sign-in/out.
         .onChange(of: auth.isAuthenticated) { _, _ in
@@ -123,6 +126,18 @@ struct ContentView: View {
                 Text("“\(t.title)” will be its first song.")
             }
         }
+        .overlay {
+            if !hasOnboarded {
+                OnboardingView { hasOnboarded = true }
+                    .transition(.opacity)
+                    .zIndex(2)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: hasOnboarded)
+        // Tell the detached player panel (its own NSWindow) to stay down while
+        // the welcome flow owns the screen.
+        .onAppear { ui.onboarding = !hasOnboarded }
+        .onChange(of: hasOnboarded) { _, done in ui.onboarding = !done }
         .sheet(isPresented: $auth.showingLogin) {
             NavigationStack {
                 GoogleSignInView { auth.completed($0) }
@@ -147,4 +162,38 @@ struct ContentView: View {
         }
     }
 
+    // MARK: window sizing
+    //
+    // The floor lives here rather than on a SwiftUI .frame: with
+    // .windowResizability(.contentMinSize) the window's minimum came from the
+    // content's own computed minimum (~1250×850), so a smaller minWidth in
+    // RiftApp was silently ignored. NSWindow.contentMinSize is absolute.
+
+    private static let appMinSize = NSSize(width: 875, height: 875)
+    /// The app proper opens at 1250×850 — that's also what HomeView's carousels
+    /// compute as their natural minimum.
+    private static let appOpenSize = NSSize(width: 875, height: 600)
+    /// Onboarding is a centred card, so the window shrinks to just fit it and
+    /// grows back to the app size when the flow finishes.
+    private static let onboardingSize = NSSize(width: 600, height: 560)
+
+    private func applyWindowSize(_ w: NSWindow) {
+        let target = hasOnboarded ? Self.appMinSize : Self.onboardingSize
+        guard w.contentMinSize != target else { return }   // idempotent: this runs on every update
+
+        w.contentMinSize = target
+
+        if !hasOnboarded {
+            w.setContentSize(Self.onboardingSize)
+            w.center()
+        } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
+            // Only when leaving onboarding within this launch. A normal launch
+            // is left alone so SwiftUI's .defaultSize (or the user's remembered
+            // frame) wins instead of racing with it.
+            DispatchQueue.main.async {
+                w.setContentSize(Self.appOpenSize)
+                w.center()
+            }
+        }
+    }
 }

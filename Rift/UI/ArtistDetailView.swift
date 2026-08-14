@@ -163,7 +163,7 @@ struct ArtistDetailView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(in: .rect(cornerRadius: 14))
+        .liquidGlass(in: .rect(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.10)))
         .padding(.horizontal, 22)
     }

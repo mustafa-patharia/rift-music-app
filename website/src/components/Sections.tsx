@@ -52,7 +52,7 @@ export function Hero() {
       <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.0 — now with on-device AI lyrics</a>
       <h1 className="reveal">A player for <span className="accent-word">all</span><br /> your music.</h1>
       <p className="hero-sub reveal">
-        A native Mac YouTube Music client in SwiftUI with Liquid Glass — a Dynamic Island for your music,
+        A native Mac YouTube Music client in SwiftUI — a Dynamic Island for your music,
         offline downloads, and on-device lyrics. Your entire library in one window.
       </p>
       <div className="key-row reveal">
@@ -119,7 +119,7 @@ export function Features() {
         <article className="cell span7 reveal">
           <div className="motif vu" aria-hidden><span className="vu-needle" /></div>
           <h3>Native, end to end</h3>
-          <p>SwiftUI and Liquid Glass — real materials, real vibrancy, native menus and media keys. Built for the Mac, head to toe.</p>
+          <p>SwiftUI throughout — real materials, real vibrancy, native menus and media keys. Liquid Glass on macOS 26 Tahoe. Built for the Mac, head to toe.</p>
         </article>
         <article className="cell span5 reveal">
           <div className="motif eq" aria-hidden><i /><i /><i /><i /><i /></div>
@@ -190,7 +190,7 @@ export function Native() {
           <h2 className="serif">It behaves like a Mac app because it is one.</h2>
         </div>
         <div className="reveal">
-          <p className="lede" style={{ marginTop: 0 }}>Swift and SwiftUI throughout, with Liquid Glass materials and system integration wherever it counts.</p>
+          <p className="lede" style={{ marginTop: 0 }}>Swift and SwiftUI throughout, with system integration wherever it counts — Liquid Glass materials on macOS 26 Tahoe.</p>
           <div className="native-list">{wins.map((w) => <span key={w}>{w}</span>)}</div>
         </div>
       </div>
@@ -244,7 +244,7 @@ export function Install() {
           <a className="keycap" data-release-link href={RELEASE}><Download /> Download for macOS <span className="release-version" style={{ opacity: .7 }}>{REL_VERSION}</span></a>
           <a className="ghost-pill" href={REPO} target="_blank" rel="noreferrer">Build from source <span>→</span></a>
         </div>
-        <p className="req">Requires macOS 26 Tahoe · Streaming uses yt-dlp under the hood.</p>
+        <p className="req">Requires macOS 14 Sonoma+ (Liquid Glass on macOS 26 Tahoe) · Streaming uses yt-dlp under the hood.</p>
       </div>
     </section>
   );

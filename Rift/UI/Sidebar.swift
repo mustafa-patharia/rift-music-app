@@ -87,7 +87,7 @@ struct Sidebar: View {
 
     private var profileChip: some View {
         Button {
-            if !auth.isAuthenticated { auth.showingLogin = true }
+            if !auth.isAuthenticated { auth.signIn() }
         } label: {
             HStack(spacing: 10) {
                 avatar

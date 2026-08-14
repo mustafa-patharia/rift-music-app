@@ -195,7 +195,7 @@ struct StatsView: View {
             Text(label).font(.caption).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
-        .glassEffect(in: .capsule)
+        .liquidGlass(in: .capsule)
         .overlay(Capsule().strokeBorder(.white.opacity(0.10)))
     }
 
@@ -378,7 +378,7 @@ struct StatsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .glassEffect(in: .rect(cornerRadius: 16))
+        .liquidGlass(in: .rect(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.10)))
     }
 

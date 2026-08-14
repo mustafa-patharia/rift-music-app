@@ -34,3 +34,6 @@ WEBSITE_BUILD_PROMPT.md
 # Bundled playback engine — built by Scripts/fetch-engine.sh, not source.
 Rift/Resources/python-arm64.tar.gz
 Rift/Resources/yt-dlp.zip
+
+# Local secrets — never commit
+.env

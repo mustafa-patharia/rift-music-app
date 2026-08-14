@@ -20,16 +20,18 @@ struct RiftApp: App {
                 .environmentObject(AppServices.shared.auth)
                 .environmentObject(AppServices.shared.ui)
                 .environmentObject(AppServices.shared.mode)
-                .frame(minWidth: 1250, maxWidth: .infinity,
-                       minHeight: 850, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .windowStyle(.hiddenTitleBar)
-        // Open at the content minimum, not larger — a first launch shouldn't
-        // take over the screen. macOS remembers the frame after that, so this
-        // only applies until the user resizes it once.
         .defaultSize(width: 1250, height: 850)
         .defaultPosition(.center)
-        .windowResizability(.contentMinSize)
+        // NOT .contentMinSize: that pins the window's floor to whatever the
+        // content subtree computes (here ~1250×850, from the fixed sidebar +
+        // queue + card carousels), which silently overrode any smaller
+        // minWidth set here. The real floor is applied to the NSWindow in
+        // ContentView's WindowAccessor, which also shrinks the window for
+        // onboarding.
+        .windowResizability(.automatic)
         .commands {
             CommandMenu("Playback") {
                 let p = AppServices.shared.player

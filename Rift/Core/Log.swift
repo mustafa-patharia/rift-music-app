@@ -11,6 +11,7 @@ enum Log {
     static let player  = Logger(subsystem: subsystem, category: "player")
     static let resolve = Logger(subsystem: subsystem, category: "resolve")
     static let ytdlp   = Logger(subsystem: subsystem, category: "ytdlp")
+    static let auth    = Logger(subsystem: subsystem, category: "auth")
 
     /// Milliseconds since a start instant — for "where did the time go" timing.
     static func ms(since start: ContinuousClock.Instant) -> Int {

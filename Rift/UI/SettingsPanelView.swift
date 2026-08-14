@@ -101,7 +101,7 @@ struct SettingsPanelView: View {
                         .frame(minHeight: 52)
                     } else {
                         row("Not signed in", subtitle: "Browsing anonymously") {
-                            Button("Sign In…") { auth.showingLogin = true }
+                            Button("Sign In…") { auth.signIn() }
                         }
                     }
                 }
@@ -296,7 +296,7 @@ struct SettingsPanelView: View {
                 .padding(.horizontal, 16)
             VStack(spacing: 0) { rows() }
                 .padding(.vertical, 4)
-                .glassEffect(in: .rect(cornerRadius: 12))
+                .liquidGlass(in: .rect(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.08)))
             if let footer {
                 Text(footer)
@@ -327,6 +327,7 @@ struct SettingsPanelView: View {
     private var divider: some View {
         Divider().padding(.leading, 16)
     }
+
 
 
     private func refreshCounts() async {

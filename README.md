@@ -5,13 +5,13 @@
 <br><br>
 
 <!-- brand-crimson badges -->
-![macOS](https://img.shields.io/badge/macOS-26_Tahoe+-ff2f3a?style=flat-square&logo=apple&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-14_Sonoma+-ff2f3a?style=flat-square&logo=apple&logoColor=white)
 ![Swift](https://img.shields.io/badge/Swift_6-SwiftUI-ff6b4a?style=flat-square&logo=swift&logoColor=white)
 ![YouTube Music](https://img.shields.io/badge/YouTube_Music-client-ffb347?style=flat-square&logo=youtubemusic&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPL--3.0-3a3a3a?style=flat-square)
 ![Status](https://img.shields.io/badge/status-in_development-ff2f3a?style=flat-square)
 
-### A native Mac **YouTube Music** client — Liquid Glass, a Dynamic Island, private by default.
+### A native Mac **YouTube Music** client — a Dynamic Island, Liquid Glass on Tahoe, private by default.
 
 **[⬇ Download](../../releases/latest)** · **[📓 Changelog](CHANGELOG.md)** · **[🌐 Website](website/)** · **[🗺 Roadmap](#-roadmap)** · **[⚖ License](LICENSE)**
 
@@ -23,7 +23,7 @@
 
 **Rift is a pure player.** Sign in with your Google account and your whole YouTube
 Music world — playlists, likes, recommendations, two-way sync — flows into a native
-SwiftUI app with Liquid Glass, a Dynamic Island in your notch, and stats that never
+SwiftUI app with a Dynamic Island in your notch, Liquid Glass on macOS 26 Tahoe, and stats that never
 leave your Mac. No cloud, no telemetry, no account required for anonymous mode.
 
 One library. One queue. One beautiful player. And **more interesting things to come.**
@@ -70,13 +70,15 @@ One library. One queue. One beautiful player. And **more interesting things to c
 > **In active development** — expect rough edges while we head to 1.0.
 
 **Download** — grab the latest from **[Releases](../../releases/latest)**, drag to
-Applications, done. *Requires macOS 26 Tahoe. Streaming uses `yt-dlp` under the hood.*
+Applications, done. *Requires macOS 14 Sonoma or later — Liquid Glass kicks in
+automatically on macOS 26 Tahoe, older Macs get a material-blur fallback.
+Streaming uses `yt-dlp` under the hood.*
 
 **From source:**
 
 ```bash
 git clone https://github.com/MustafaPatharia/rift-music-app
-open rift-music-app/Rift.xcodeproj   # Xcode 26+ · macOS 26 Tahoe
+open rift-music-app/Rift.xcodeproj   # Xcode 26+ · macOS 14 Sonoma+
 ```
 
 **The website** (marketing / this repo's `website/`) is a static Next.js app:

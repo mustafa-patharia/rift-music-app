@@ -105,7 +105,7 @@ struct CollectionDetailView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 34, height: 34)
-                    .glassEffect(.regular.interactive(), in: .circle)
+                    .liquidGlass(true, in: .circle)
                     .overlay(Circle().strokeBorder(.white.opacity(0.15)))
                     .contentShape(.circle)
             }

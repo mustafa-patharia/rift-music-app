@@ -67,7 +67,7 @@ struct CompactPlayerView: View {
     }
 
     private var controls: some View {
-        GlassEffectContainer {
+        LiquidGlassContainer {
             HStack(spacing: 14) {
                 glassButton("shuffle", diameter: 28, font: .footnote) { player.toggleShuffle() }
                     .foregroundStyle(activeStyle(player.isShuffled))
@@ -97,7 +97,7 @@ struct CompactPlayerView: View {
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .circle)
+        .liquidGlass(true, in: .circle)
     }
 
     private var scrubber: some View {

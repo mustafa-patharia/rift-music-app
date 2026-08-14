@@ -36,7 +36,7 @@ struct GlassPillButton: View {
             .foregroundStyle(prominent ? AnyShapeStyle(.black) : AnyShapeStyle(.primary))
             .padding(.horizontal, 18).padding(.vertical, 9)
             .background { if prominent { Capsule().fill(.white.opacity(0.92)) } }
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .liquidGlass(true, in: .capsule)
             .overlay(Capsule().strokeBorder(.white.opacity(prominent ? 0 : 0.18)))
             .contentShape(.capsule)
             .opacity(isEnabled ? 1 : 0.45)

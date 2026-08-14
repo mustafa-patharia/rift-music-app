@@ -60,7 +60,7 @@ struct NowPlayingBar: View {
         }
         .padding(.horizontal, 18).padding(.vertical, 12)
         .frame(width: w, height: pillHeight)
-        .glassEffect(in: .rect(cornerRadius: 26))
+        .liquidGlass(in: .rect(cornerRadius: 26))
         .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(.white.opacity(0.12)))
         .shadow(color: .black.opacity(0.3), radius: 20, y: 8)
     }

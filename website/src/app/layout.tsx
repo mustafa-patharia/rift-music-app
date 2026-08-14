@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://mustafapatharia.github.io/rift-music-app"),
   title: "Rift — the Mac-native YouTube Music client",
   description:
-    "Rift is a beautiful, fully native macOS YouTube Music client. Liquid Glass UI, a Dynamic Island for your music, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
+    "Rift is a beautiful, fully native macOS YouTube Music client. A Dynamic Island for your music, Liquid Glass on macOS 26 Tahoe, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
   icons: { icon: asset("/brand/rift-128.png") },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
@@ -51,7 +51,7 @@ const jsonLd = {
   "@type": "SoftwareApplication",
   name: "Rift",
   applicationCategory: "MultimediaApplication",
-  operatingSystem: "macOS 26",
+  operatingSystem: "macOS 14+",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   description:
     "A native macOS YouTube Music client with a Dynamic Island, offline downloads, on-device lyrics and local-only stats.",

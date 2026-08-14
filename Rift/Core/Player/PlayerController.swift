@@ -86,6 +86,14 @@ final class PlayerController: ObservableObject {
     /// Restore the last session PAUSED at the saved position. Nothing is
     /// loaded/resolved yet — the first play tap starts the source and seeks.
     private func restoreSession() {
+        // First run — or a reset back to onboarding — starts clean. Restoring
+        // a previous session would leave a stale track sitting in the player
+        // behind the welcome flow (the same @AppStorage key ContentView gates
+        // onboarding on).
+        guard UserDefaults.standard.bool(forKey: "hasOnboarded") else {
+            if let url = Self.resumeFile { try? FileManager.default.removeItem(at: url) }
+            return
+        }
         guard let url = Self.resumeFile, let data = try? Data(contentsOf: url),
               let s = try? JSONDecoder().decode(ResumeSnapshot.self, from: data),
               s.queue.indices.contains(s.index) else { return }

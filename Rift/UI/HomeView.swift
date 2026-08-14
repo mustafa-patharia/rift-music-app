@@ -122,7 +122,7 @@ struct HomeView: View {
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 14).padding(.vertical, 12)
-                            .glassEffect(in: .rect(cornerRadius: 10))
+                            .liquidGlass(in: .rect(cornerRadius: 10))
                             .overlay(RoundedRectangle(cornerRadius: 10)
                                 .strokeBorder(.white.opacity(0.10)))
                             .contentShape(.rect)

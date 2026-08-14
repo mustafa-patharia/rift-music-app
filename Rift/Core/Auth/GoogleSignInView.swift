@@ -69,7 +69,7 @@ struct GoogleSignInView: NSViewRepresentable {
                 let header = yt.map { "\($0.name)=\($0.value)" }.joined(separator: "; ")
                 self.done = true
                 Task { @MainActor in
-                    self.onComplete(YTAuth(cookie: header, sapisid: sapisid, email: nil))
+                    self.onComplete(YTAuth(cookie: header, sapisid: sapisid))
                 }
             }
         }

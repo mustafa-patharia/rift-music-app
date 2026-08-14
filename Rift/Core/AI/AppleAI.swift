@@ -11,7 +11,8 @@ import FoundationModels
 enum AppleAI {
 
     static var isAvailable: Bool {
-        SystemLanguageModel.default.availability == .available
+        guard #available(macOS 26, *) else { return false }
+        return SystemLanguageModel.default.availability == .available
     }
 
     static func hasDevanagari(_ s: String) -> Bool {
@@ -21,6 +22,10 @@ enum AppleAI {
     /// One instruction-guided completion. Fresh session per call — no
     /// accumulated transcript, no drift between chunks.
     static func respond(instructions: String, to prompt: String) async throws -> String {
+        guard #available(macOS 26, *) else {
+            throw NSError(domain: "AppleAI", code: 1,
+                           userInfo: [NSLocalizedDescriptionKey: "Apple Intelligence requires macOS 26 or later."])
+        }
         let session = LanguageModelSession(instructions: instructions)
         let response = try await session.respond(to: prompt)
         return response.content.trimmingCharacters(in: .whitespacesAndNewlines)

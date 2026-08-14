@@ -23,6 +23,11 @@ final class AuthController: ObservableObject {
         if isAuthenticated { Task { await refreshAccount() } }
     }
 
+    /// Entry point for every "Sign In" button: opens the embedded cookie webview.
+    func signIn() {
+        showingLogin = true
+    }
+
     /// Called by the sign-in webview once a YTM session is captured.
     func completed(_ auth: YTAuth) {
         AuthStore.save(auth)

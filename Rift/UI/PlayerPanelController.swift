@@ -51,7 +51,11 @@ final class PlayerPanelController {
         // Show/hide as the current track comes and goes.
         player.$track
             .receive(on: RunLoop.main)
-            .sink { [weak self] track in track != nil ? self?.show() : self?.hide() }
+            .sink { [weak self] track in
+                guard let self else { return }
+                self.shouldShow(track: track, full: self.ui.showFullPlayer,
+                                onboarding: self.ui.onboarding) ? self.show() : self.hide()
+            }
             .store(in: &bag)
 
         // Child windows follow moves automatically but NOT resizes — recenter.
@@ -78,16 +82,24 @@ final class PlayerPanelController {
             .store(in: &bag)
 
         // Hide the floating pill while the full-screen player is up (it has its own
-        // transport, and the pill's NSPanel floats above an in-window overlay).
-        ui.$showFullPlayer
+        // transport, and the pill's NSPanel floats above an in-window overlay) or
+        // while onboarding covers the window.
+        Publishers.CombineLatest(ui.$showFullPlayer, ui.$onboarding)
             .receive(on: RunLoop.main)
-            .sink { [weak self] full in
+            .sink { [weak self] full, onboarding in
                 guard let self else { return }
-                (full || self.player.track == nil) ? self.hide() : self.show()
+                self.shouldShow(full: full, onboarding: onboarding) ? self.show() : self.hide()
             }
             .store(in: &bag)
 
-        if player.track != nil { show() }
+        if shouldShow(full: ui.showFullPlayer, onboarding: ui.onboarding) { show() }
+    }
+
+    /// Single rule for whether the pill belongs on screen — every subscription
+    /// routes through it so they can't disagree about visibility.
+    private func shouldShow(track: PlayableTrack? = nil, full: Bool, onboarding: Bool) -> Bool {
+        let current = track ?? player.track
+        return current != nil && !full && !onboarding
     }
 
     // MARK: panel
