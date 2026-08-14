@@ -158,20 +158,28 @@ export default function Enhancements() {
 
         // card glare
         document.querySelectorAll<HTMLElement>(".cell").forEach((card) => {
-          card.addEventListener("mousemove", (e) => {
+          const onCardMove = (e: MouseEvent) => {
             const r = card.getBoundingClientRect();
-            card.style.setProperty("--mx", `${(e as MouseEvent).clientX - r.left}px`);
-            card.style.setProperty("--my", `${(e as MouseEvent).clientY - r.top}px`);
-          }, { passive: true });
+            card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+            card.style.setProperty("--my", `${e.clientY - r.top}px`);
+          };
+          card.addEventListener("mousemove", onCardMove, { passive: true });
+          cleanups.push(() => card.removeEventListener("mousemove", onCardMove));
         });
 
         // magnetic primary buttons
         document.querySelectorAll<HTMLElement>(".pn-cta, .keycap:not(.ghost)").forEach((b) => {
-          b.addEventListener("mousemove", (e) => {
+          const onBtnMove = (e: MouseEvent) => {
             const r = b.getBoundingClientRect();
-            gsap.to(b, { x: ((e as MouseEvent).clientX - r.left - r.width / 2) * 0.2, y: ((e as MouseEvent).clientY - r.top - r.height / 2) * 0.3, duration: 0.3, ease: "power2.out" });
+            gsap.to(b, { x: (e.clientX - r.left - r.width / 2) * 0.2, y: (e.clientY - r.top - r.height / 2) * 0.3, duration: 0.3, ease: "power2.out" });
+          };
+          const onBtnLeave = () => gsap.to(b, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1,0.45)" });
+          b.addEventListener("mousemove", onBtnMove);
+          b.addEventListener("mouseleave", onBtnLeave);
+          cleanups.push(() => {
+            b.removeEventListener("mousemove", onBtnMove);
+            b.removeEventListener("mouseleave", onBtnLeave);
           });
-          b.addEventListener("mouseleave", () => gsap.to(b, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1,0.45)" }));
         });
       });
       ScrollTrigger.refresh();
