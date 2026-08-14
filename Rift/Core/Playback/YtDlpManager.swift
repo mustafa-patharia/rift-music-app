@@ -39,6 +39,7 @@ actor YtDlpManager {
     private let zipURL: URL           // …/bin/yt-dlp.zip (zipimport, run via python3)
     private let pyRootURL: URL        // …/bin/python (unpacked CPython)
     private var inFlight: Task<Bool, Never>?   // dedup concurrent downloads (actor reentrancy)
+    private var preparing: Task<Bool, Never>?  // dedup concurrent prepare() calls (actor reentrancy)
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -56,6 +57,15 @@ actor YtDlpManager {
     /// if the user happens to have one.
     @discardableResult
     func prepare() async -> Bool {
+        if let t = preparing { return await t.value }
+        let t = Task { await self.performPrepare() }
+        preparing = t
+        let ok = await t.value
+        preparing = nil
+        return ok
+    }
+
+    private func performPrepare() async -> Bool {
         let stamp = Self.bundleStamp()
         let unpacked = FileManager.default.isExecutableFile(atPath: pythonExecURL.path)
             && FileManager.default.fileExists(atPath: zipURL.path)
