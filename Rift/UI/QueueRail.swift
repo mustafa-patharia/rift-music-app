@@ -22,58 +22,69 @@ struct QueueRail: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Now Playing").font(.headline)
-                Spacer()
-                Button {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                        ui.showQueue = false
+        // Header stays pinned (its ✕ must always be reachable); everything below
+        // it — artwork, title, Up Next — scrolls as ONE list, so the artwork can
+        // scroll away instead of squeezing the queue into a sliver.
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                // Shared top line with the home hero + sidebar first section.
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
+                .padding(.bottom, 14)
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Artwork(url: player.track?.artworkURL, size: 228)
+                        .frame(maxWidth: .infinity)
+                        .shadow(color: .black.opacity(0.3), radius: 16, y: 8)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(player.track?.title ?? "—").font(.title3.bold()).lineLimit(2)
+                        Text(player.track?.artist ?? "").foregroundStyle(.secondary).lineLimit(1)
                     }
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 26, height: 26)
-                        .background(.ultraThinMaterial, in: .circle)
-                        .overlay(Circle().strokeBorder(.white.opacity(0.10)))
-                }
-                .buttonStyle(.plain)
-                .help("Hide queue")
-            }
 
-            Artwork(url: player.track?.artworkURL, size: 228)
-                .frame(maxWidth: .infinity)
-                .shadow(color: .black.opacity(0.3), radius: 16, y: 8)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(player.track?.title ?? "—").font(.title3.bold()).lineLimit(2)
-                Text(player.track?.artist ?? "").foregroundStyle(.secondary).lineLimit(1)
-            }
-
-            if !upNext.isEmpty {
-                Text("Up Next").font(.headline).padding(.top, 4)
-                ScrollView {
-                    LazyVStack(spacing: 2) {
-                        ForEach(visualOrder ?? upNext) { t in
-                            queueRow(t)
+                    if !upNext.isEmpty {
+                        Text("Up Next").font(.headline).padding(.top, 4)
+                        LazyVStack(spacing: 2) {
+                            ForEach(visualOrder ?? upNext) { t in
+                                queueRow(t)
+                            }
                         }
                     }
                 }
-                .noScrollbar()
-                // Drop anywhere in the rail (incl. below the rows) commits.
-                .onDrop(of: [.text], delegate: QueueDropDelegate(
-                    targetId: nil, draggingId: $draggingId,
-                    visualOrder: $visualOrder, commit: commitMove))
+                .padding([.horizontal, .bottom], 18)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Spacer(minLength: 0)
+            // Drop anywhere in the rail (incl. below the rows) commits.
+            .onDrop(of: [.text], delegate: QueueDropDelegate(
+                targetId: nil, draggingId: $draggingId,
+                visualOrder: $visualOrder, commit: commitMove))
         }
-        // Shared top line with the home hero + sidebar first section.
-        .padding([.horizontal, .bottom], 18)
-        .padding(.top, 16)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.ultraThinMaterial)
         .overlay(Rectangle().frame(width: 1).foregroundStyle(.white.opacity(0.08)), alignment: .leading)
+    }
+
+    /// Pinned title row — never scrolls, so "Hide queue" is always one click away.
+    private var header: some View {
+        HStack {
+            Text("Now Playing").font(.headline)
+            Spacer()
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    ui.showQueue = false
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 26, height: 26)
+                    .background(.ultraThinMaterial, in: .circle)
+                    .overlay(Circle().strokeBorder(.white.opacity(0.10)))
+            }
+            .buttonStyle(.plain)
+            .help("Hide queue")
+        }
     }
 
     // MARK: rows + drag pieces

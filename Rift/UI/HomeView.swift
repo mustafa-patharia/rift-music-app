@@ -43,7 +43,6 @@ struct HomeView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .noScrollbar()
         .task { store.start() }
         .task { recent = await PlayHistoryStore.shared.recent() }
         // Recently played updates the moment a track changes (the finished
@@ -65,7 +64,6 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 22)
             }
-            .noScrollbar()
         }
     }
 
@@ -109,7 +107,6 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 22)
             }
-            .noScrollbar()
         }
     }
 

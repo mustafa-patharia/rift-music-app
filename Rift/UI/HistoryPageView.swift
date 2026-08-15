@@ -39,7 +39,6 @@ struct HistoryPageView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
-        .noScrollbar()
         .navigationBarBackButtonHidden(true)
         .task {
             let events = await PlayHistoryStore.shared.all()

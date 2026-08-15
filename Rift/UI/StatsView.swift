@@ -76,7 +76,6 @@ struct StatsView: View {
             .animation(.easeOut(duration: 0.35), value: appeared)
         }
         .scrollContentBackground(.hidden)
-        .noScrollbar()
         .task {
             events = await PlayHistoryStore.shared.all()
             appeared = true

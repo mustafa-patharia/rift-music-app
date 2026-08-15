@@ -68,7 +68,6 @@ struct SettingsPanelView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollContentBackground(.hidden)
-            .noScrollbar()
         }
         .task { await refreshCounts() }
         .task(id: ai.provider) { if ai.provider == .ollama { await refreshOllama() } }
@@ -304,7 +303,7 @@ struct SettingsPanelView: View {
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.08)))
 
             section("Developer") {
-                row("Mustafa Patharia", subtitle: "Built and maintained by one developer") {
+                row("Built and maintained by one developer") {
                     Link(destination: URL(string: "https://mustafapatharia.vercel.app")!) {
                         Label("Meet the Developer", systemImage: "person.crop.circle")
                     }

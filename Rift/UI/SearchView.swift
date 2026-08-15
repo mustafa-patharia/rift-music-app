@@ -76,7 +76,6 @@ struct SearchView: View {
                             ForEach(artists) { MusicCardView(card: $0) }
                         }
                     }
-                    .noScrollbar()
                     .padding(.bottom, 6)
                     if !results.isEmpty { Text("Songs").font(.headline) }
                 }
@@ -90,7 +89,6 @@ struct SearchView: View {
             .padding(.horizontal, 20)
         }
         .scrollContentBackground(.hidden)
-        .noScrollbar()
     }
 
     private var suggestionList: some View {
@@ -112,7 +110,6 @@ struct SearchView: View {
             .padding(.horizontal, 20)
         }
         .scrollContentBackground(.hidden)
-        .noScrollbar()
     }
 
     // Idle: recent searches up top, then the Trending shelves (charts — Top
@@ -154,7 +151,6 @@ struct SearchView: View {
                                     ForEach(section.cards) { MusicCardView(card: $0) }
                                 }
                             }
-                            .noScrollbar()
                         }
                         .padding(.top, 18)
                     }
@@ -162,7 +158,6 @@ struct SearchView: View {
                 .padding(.horizontal, 20).padding(.top, 6)
             }
             .scrollContentBackground(.hidden)
-            .noScrollbar()
         }
     }
 

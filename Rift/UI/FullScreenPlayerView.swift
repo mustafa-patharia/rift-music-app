@@ -23,6 +23,9 @@ struct FullScreenPlayerView: View {
     @State private var romanized: String?
     @State private var english: String?
     @State private var aiWorking = false
+    /// Pointer offset from the poster's centre, -0.5…0.5 per axis. Drives the
+    /// parallax tilt; .zero is flat.
+    @State private var tilt: CGSize = .zero
 
     private enum LyricsState: Equatable { case idle, loading, none, loaded }
 
@@ -34,13 +37,20 @@ struct FullScreenPlayerView: View {
         // just hides while this shows. One shared bg, two swapping foregrounds.
         VStack(spacing: 0) {
             topBar
-            HStack(spacing: 40) {
-                nowPlaying
-                    .frame(maxWidth: showLyrics ? 460 : .infinity)
-                if showLyrics { lyricsPanel.frame(maxWidth: 460) }
+            // Everything below scales with the window instead of using fixed
+            // point sizes — at the 875×600 minimum the old 460pt columns and
+            // 60pt gutters overflowed the content column.
+            GeometryReader { geo in
+                let tight = geo.size.width < 720
+                let column = min(460, geo.size.width * 0.44)
+                HStack(spacing: tight ? 20 : 40) {
+                    nowPlaying
+                        .frame(maxWidth: showLyrics ? column : .infinity)
+                    if showLyrics { lyricsPanel.frame(maxWidth: column) }
+                }
+                .padding(.horizontal, tight ? 24 : 60)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.horizontal, 60)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task(id: player.track?.id) { await loadLyrics() }
@@ -114,25 +124,59 @@ struct FullScreenPlayerView: View {
 
     // MARK: now playing column
     private var nowPlaying: some View {
-        VStack(spacing: 28) {
-            Spacer(minLength: 0)
-            Artwork(url: player.track?.artworkURL, size: 340)
-                .clipShape(.rect(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.5), radius: 30, y: 14)
-                .scaleEffect(player.isPlaying ? 1 : 0.94)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: player.isPlaying)
+        // Poster is a share of the column, not a fixed 340pt: capped at 340 so
+        // big windows look unchanged, and bounded by a fraction of the available
+        // HEIGHT so a short window still fits title + scrubber + transport below
+        // it. 0.4 (not 0.5) — at 0.5 the stack exactly filled the column, which
+        // collapsed the centring Spacers and left the transport on the edge.
+        GeometryReader { geo in
+            let poster = min(340, min(geo.size.width, geo.size.height * 0.4))
+            let roomy = poster > 220
 
-            VStack(spacing: 6) {
-                Text(player.track?.title ?? "—").font(.system(size: 26, weight: .bold))
-                    .lineLimit(2).multilineTextAlignment(.center)
-                Text(player.track?.artist ?? "").font(.title3).foregroundStyle(.secondary)
-                    .lineLimit(1)
+            VStack(spacing: roomy ? 28 : 16) {
+                Spacer(minLength: 0)
+                Artwork(url: player.track?.artworkURL, size: poster)
+                    .clipShape(.rect(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.5), radius: 30, y: 14)
+                    .scaleEffect(player.isPlaying ? 1 : 0.94)
+                    // Parallax: the poster tilts toward the cursor. `tilt` is the
+                    // pointer's offset from centre, normalised to -0.5…0.5 on each
+                    // axis, so the effect is identical at every poster size.
+                    .rotation3DEffect(.degrees(Double(tilt.height) * -10),
+                                      axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+                    .rotation3DEffect(.degrees(Double(tilt.width) * 10),
+                                      axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: player.isPlaying)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: tilt)
+                    .onContinuousHover(coordinateSpace: .local) { phase in
+                        switch phase {
+                        case .active(let p):
+                            tilt = CGSize(width: (p.x / poster) - 0.5,
+                                          height: (p.y / poster) - 0.5)
+                        case .ended:
+                            tilt = .zero   // settle back to flat on exit
+                        }
+                    }
+
+                VStack(spacing: 6) {
+                    Text(player.track?.title ?? "—")
+                        .font(.system(size: roomy ? 26 : 20, weight: .bold))
+                        .lineLimit(2).multilineTextAlignment(.center)
+                    Text(player.track?.artist ?? "")
+                        .font(roomy ? .title3 : .subheadline).foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                .foregroundStyle(.white)
+
+                scrubber
+                transport(roomy: roomy)
+                Spacer(minLength: 0)
             }
-            .foregroundStyle(.white)
-
-            scrubber
-            transport
-            Spacer(minLength: 0)
+            // Hard floor under the transport: the Spacers above centre the stack
+            // when there's room, but they collapse to 0 once content fills the
+            // column — this keeps the buttons off the window edge regardless.
+            .padding(.bottom, roomy ? 28 : 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -143,6 +187,9 @@ struct FullScreenPlayerView: View {
                 scrubbing = editing
                 if !editing { player.seek(to: scrubValue) }
             }
+            // A restored session sets currentTime before this view exists, so
+            // onChange alone would leave the knob parked at 0.
+            .onAppear { scrubValue = min(player.currentTime, dur) }
             .onChange(of: player.currentTime) { _, t in if !scrubbing { scrubValue = min(t, dur) } }
             .onChange(of: player.track?.id) { _, _ in scrubValue = 0 }
             HStack {
@@ -155,14 +202,17 @@ struct FullScreenPlayerView: View {
         .frame(maxWidth: 420)
     }
 
-    private var transport: some View {
-        HStack(spacing: 34) {
+    // Sized off the same `roomy` flag as the poster: at full width this is the
+    // original 34pt/68pt layout, in a narrow column it tightens instead of
+    // overflowing (the row is ~364pt fixed otherwise).
+    private func transport(roomy: Bool) -> some View {
+        HStack(spacing: roomy ? 34 : 18) {
             icon("shuffle", size: 18, active: player.isShuffled) { player.toggleShuffle() }
             icon("backward.fill", size: 24) { player.previous() }
                 .disabled(!player.hasPrevious && player.currentTime <= 3)
             Button { player.togglePlayPause() } label: {
                 Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 68)).symbolRenderingMode(.hierarchical)
+                    .font(.system(size: roomy ? 68 : 52)).symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.white)
             }
             .buttonStyle(.plain)

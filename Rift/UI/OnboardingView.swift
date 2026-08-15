@@ -213,9 +213,9 @@ private struct SignInPage: View {
 
 // MARK: - Brand palette
 //
-// The app icon is warm (ember orange → coral). The system accent colour is
-// blue by default, which fought the artwork — so the onboarding art keys off
-// these instead of `.accentColor`.
+// The app icon is warm (ember orange → coral). The system accent colour varies
+// per machine and fought the artwork — so the onboarding art keys off these
+// (and Color.riftAccent) rather than the system accent.
 
 // Used only for the icon's own glow and the background wash — controls and
 // status colours stay system-standard (accent / green).
@@ -562,7 +562,7 @@ private struct LyricsArt: View {
                     .foregroundStyle(.secondary)
             }
             .font(.callout.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(Color.riftAccent)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .liquidGlass(in: Capsule())

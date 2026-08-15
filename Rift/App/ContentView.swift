@@ -95,12 +95,7 @@ struct ContentView: View {
         // be its own window. Grab our NSWindow and hand it over.
         .background(WindowAccessor { w in
             AppServices.shared.playerPanel.attach(to: w)
-            // Draw edge-to-edge under the title bar so the center column (and the
-            // full player) reach the very top — no title-bar strip gap. Traffic
-            // lights float over the sidebar's top padding (standard music-app look).
-            w.styleMask.insert(.fullSizeContentView)
-            w.titlebarAppearsTransparent = true
-            w.titleVisibility = .hidden
+            applyWindowChrome(w)
             applyWindowSize(w)
         })
         // Home feed is cached in HomeStore — re-personalize it on sign-in/out.
@@ -164,15 +159,33 @@ struct ContentView: View {
 
     // MARK: window sizing
     //
-    // The floor lives here rather than on a SwiftUI .frame: with
-    // .windowResizability(.contentMinSize) the window's minimum came from the
-    // content's own computed minimum (~1250×850), so a smaller minWidth in
-    // RiftApp was silently ignored. NSWindow.contentMinSize is absolute.
+    // Sizes come from RiftWindow (RiftApp.swift) so the absolute floor here can
+    // never drift from the .frame/.defaultSize declared there. This floor is
+    // applied to the NSWindow because contentMinSize is absolute, whereas
+    // .windowResizability(.contentMinSize) would derive the minimum from the
+    // content subtree's own computed size and override it.
 
-    private static let appMinSize = NSSize(width: 875, height: 600)
-    /// Onboarding is a centred card, so the window shrinks to just fit it and
-    /// grows back to the app size when the flow finishes.
-    private static let onboardingSize = NSSize(width: 600, height: 560)
+    private static let appMinSize = NSSize(width: RiftWindow.minSize.width,
+                                           height: RiftWindow.minSize.height)
+    private static let onboardingSize = NSSize(width: RiftWindow.onboardingSize.width,
+                                               height: RiftWindow.onboardingSize.height)
+
+    /// Draw edge-to-edge under the title bar so the center column (and the full
+    /// player) reach the very top — no title-bar strip gap. Traffic lights float
+    /// over the sidebar's top padding (standard music-app look).
+    ///
+    /// Guarded + deferred for the same reason as applyWindowSize below: this runs
+    /// from WindowAccessor.updateNSView on EVERY SwiftUI update, and assigning
+    /// styleMask rebuilds the window's theme frame (invalidating constraints).
+    /// Doing that mid-layout is what throws.
+    private func applyWindowChrome(_ w: NSWindow) {
+        guard !w.styleMask.contains(.fullSizeContentView) else { return }
+        DispatchQueue.main.async {
+            w.styleMask.insert(.fullSizeContentView)
+            w.titlebarAppearsTransparent = true
+            w.titleVisibility = .hidden
+        }
+    }
 
     private func applyWindowSize(_ w: NSWindow) {
         let target = hasOnboarded ? Self.appMinSize : Self.onboardingSize

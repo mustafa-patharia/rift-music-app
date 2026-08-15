@@ -43,7 +43,12 @@ final class NotchController {
             notchSize: CGSize(width: notch.width, height: notch.height),
             expandedSize: CGSize(width: expandedW, height: expandedH)
         ).environmentObject(player)
-        win.contentView = NSHostingView(rootView: root)
+        // sizingOptions = []: the notch card is explicitly sized by this window, so
+        // NSHostingView must not publish (and mid-layout re-invalidate) SwiftUI's
+        // measured size as window constraints. See PlayerPanelController.makePanel.
+        let hosting = NSHostingView(rootView: root)
+        hosting.sizingOptions = []
+        win.contentView = hosting
 
         win.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(win)

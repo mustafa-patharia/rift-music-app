@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var mode: AppModeController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        installCrashLogging()
+
         let s = AppServices.shared
         menuBar = MenuBarController(player: s.player)
         notch = NotchController(player: s.player)
@@ -21,6 +23,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         s.mode.onChange = { [weak self] in self?.apply() }
         apply()
+    }
+
+    // The system crash report captures the NSException's name/reason (e.g. AppKit's
+    // "recursive layout" NSInternalInconsistencyException) but that never reaches
+    // Console.app on its own — log it ourselves right before the process dies so
+    // `log show --predicate 'subsystem == "com.mustafapatharia.riftmusicapp"'` has
+    // the actual reason string, not just a bare EXC_BREAKPOINT address.
+    private func installCrashLogging() {
+        NSSetUncaughtExceptionHandler { exception in
+            Log.ui.fault("""
+                uncaught exception: \(exception.name.rawValue, privacy: .public) \
+                — \(exception.reason ?? "no reason", privacy: .public)
+                \(exception.callStackSymbols.joined(separator: "\n"), privacy: .public)
+                """)
+        }
     }
 
     private func apply() {
