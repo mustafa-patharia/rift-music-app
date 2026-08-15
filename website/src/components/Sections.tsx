@@ -49,7 +49,7 @@ function WaveStrip({ bars = 46 }: { bars?: number }) {
 export function Hero() {
   return (
     <header className="hero" id="top">
-      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.0 — now with on-device AI lyrics</a>
+      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v0.0.2 is active</a>
       <h1 className="reveal">A player for <span className="accent-word">all</span><br /> your music.</h1>
       <p className="hero-sub reveal">
         A native Mac YouTube Music client in SwiftUI — a Dynamic Island for your music,
@@ -61,9 +61,9 @@ export function Hero() {
       </div>
       <p className="install-caption reveal">open source · GPL-3.0 · built in SwiftUI</p>
 
-      <div className="hero-visual reveal" data-tilt>
+      <div className="hero-artwork">
         <RiftWindow>
-          <Shot name="full_screen_player_screen" alt="Rift full-screen player playing Tujh Mein Rab Dikhta Hai" priority />
+          <Shot name="full_screen_player_screen" alt="Rift Music App full-screen player playing Tujh Mein Rab Dikhta Hai" priority />
         </RiftWindow>
       </div>
 
@@ -142,9 +142,10 @@ export function Features() {
           <p>Top songs, top artists, listening clocks by hour and weekday — computed and stored on your Mac only.</p>
         </article>
         <article className="cell span6 invert reveal">
-          <div className="motif"><WaveStrip /></div>
-          <h3>Radio that never stops</h3>
-          <p>Queue runs out? Rift keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
+          <div className="feat-copy">
+          <h3 className="serif">Never stops playing.</h3>
+          <p>Queue runs out? Rift Music App keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
+        </div>
         </article>
         <article className="cell span6 reveal">
           <div className="motif sparkle" aria-hidden>✦</div>
@@ -167,8 +168,8 @@ export function Notch() {
         expands into a full transport — scrub, skip, like, all without leaving what you&rsquo;re doing.
       </p>
       <div className="notch-stage reveal">
-        <div className="notch-shot" data-tilt>
-          <Shot name="top_notch" alt="Rift Dynamic Island expanded with full transport controls" />
+        <div className="artboard-img">
+          <Shot name="top_notch" alt="Rift Music App Dynamic Island expanded with full transport controls" />
         </div>
       </div>
       <p className="notch-cap reveal">The island lives in the notch when you have one, and tucks away when you don&rsquo;t.</p>
@@ -256,7 +257,7 @@ export function Support() {
     <section className="rail chorus" aria-label="Open source">
       <div className="support-card reveal">
         <p className="eyebrow accent">Built in the open</p>
-        <h2 className="serif">Free. Open source. Built for people who miss real Mac apps.</h2>
+        <h2 className="serif">Free. Open source. Built for people who love Mac apps.</h2>
         <StarButton />
         <p className="credits">
           Protocol &amp; design references —{" "}

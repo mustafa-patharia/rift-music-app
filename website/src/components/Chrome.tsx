@@ -1,14 +1,16 @@
 // Server components: pill nav, top scrubber, footer. No-JS safe.
 // Interactive bits (theme/ambient toggle) are wired by <Enhancements/> via id/class.
 import Link from "next/link";
-import { Bolt, Github, Download, SunMoon, Speaker, Star } from "./icons";
+import Image from "next/image";
+import { asset } from "@/lib/asset";
+import { Bolt, Github, Download, SunMoon, Speaker, Star, Coffee } from "./icons";
 import { REPO, RELEASE, REL_VERSION } from "@/lib/config";
 
 export function Nav() {
   return (
     <nav className="pillnav" aria-label="Main">
-      <Link className="pn-logo" href="/" aria-label="Rift home">
-        <Bolt className="pn-bolt" /> Rift
+      <Link className="pn-logo" href="/" aria-label="Rift Music App home">
+        <Image src={asset("/brand/rift-128.png")} alt="Rift Music App logo" width={18} height={18} className="pn-bolt" /> Rift Music App
       </Link>
       <div className="pn-links">
         <Link href="/#features">Features</Link>
@@ -17,15 +19,20 @@ export function Nav() {
         <Link href="/changelog">Changelog</Link>
       </div>
       <div className="pn-right">
-        <button className="pn-icon" id="ambient-toggle" type="button" aria-label="Play ambient sound" title="Listen" hidden>
-          <Speaker />
-        </button>
         <button className="pn-icon" id="theme-toggle" type="button" aria-label="Switch color theme" title="Switch theme">
           <SunMoon />
         </button>
-        <a className="pn-icon" href={REPO} aria-label="Rift on GitHub" target="_blank" rel="noreferrer">
-          <Github />
-        </a>
+        <div className="chai-wrap">
+          <button className="pn-cta pn-cta-chai" type="button" aria-label="Buy me a chai" aria-haspopup="true">
+            <Coffee /> <span className="chai-text">Support</span>
+          </button>
+          <div className="chai-popover">
+            <Image src={asset("/img/qr-chai.png")} alt="Buy me a chai QR Code" width={160} height={160} className="chai-qr" style={{ width: 'auto', height: 'auto' }} />
+            <a href="https://buymeachai.in/mustafapatharia" target="_blank" rel="noreferrer" className="chai-btn">
+              <Coffee /> Buy me a chai
+            </a>
+          </div>
+        </div>
         <a className="pn-cta" data-release-link href={RELEASE}>
           <Download /> Download
         </a>
@@ -66,17 +73,20 @@ export function Scrubber() {
 export function Footer() {
   return (
     <footer className="footer">
-      <div className="brand"><Bolt /> Rift</div>
+      <div className="brand"><Image src={asset("/brand/rift-128.png")} alt="Rift Music App logo" width={18} height={18} /> Rift Music App</div>
       <p className="pos">A native macOS YouTube Music client for your whole library.</p>
       <div className="footer-links">
         <Link href="/changelog">Changelog</Link>
         <a href={REPO} target="_blank" rel="noreferrer">GitHub</a>
         <a href={`${REPO}/releases`} target="_blank" rel="noreferrer">Releases</a>
         <a href={`${REPO}/blob/main/LICENSE`} target="_blank" rel="noreferrer">License</a>
+        <Link href="/privacy">Privacy</Link>
+        <Link href="/terms">Terms</Link>
+        <a href="https://mustafapatharia.vercel.app" target="_blank" rel="noreferrer">Meet the Developer</a>
       </div>
       <p className="release-meta">GPL-3.0 — free as in freedom · <span className="release-version">{REL_VERSION}</span></p>
       <p className="disclaimer">
-        Rift is an independent open-source project — not affiliated with, endorsed by, or connected to
+        Rift Music App is an independent open-source project — not affiliated with, endorsed by, or connected to
         Google LLC, YouTube, or any music service it connects to. All trademarks belong to their owners.
         No ads, no resale, no bundled credentials; downloading content may conflict with a service&rsquo;s
         terms — use responsibly where permitted.
