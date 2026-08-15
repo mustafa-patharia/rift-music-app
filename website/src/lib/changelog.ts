@@ -10,9 +10,41 @@ export const CHANGELOG: Release[] = [
     ],
   },
   {
+    version: "0.0.2",
+    date: "2026-08-15",
+    current: true,
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Gapless crossfade for smooth transitions between songs.",
+          "Multilingual lyrics AI support.",
+          "Non-notch display settings for older Macs.",
+          "Onboarding flow and Liquid Glass fallback.",
+          "Website deployment moved to Vercel; added Terms, Privacy, and Chai support link."
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Settings redesign for a cleaner, more intuitive interface.",
+          "Gated top-artists on play count.",
+          "Dropped redundant nav titles."
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Fixed a window sizing race condition.",
+          "Fixed duration and scrollbar issues.",
+          "OAuth cleanup and icon fixes."
+        ]
+      }
+    ]
+  },
+  {
     version: "0.1.0",
     date: "2026-07-27",
-    current: true,
     sections: [
       {
         label: "Added",

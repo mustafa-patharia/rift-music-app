@@ -1470,6 +1470,7 @@ h3 {
 .notch-stage {
   margin: 48px auto 0;
   width: min(560px, 92%);
+  text-align: center;
 }
 
 .notch-shot {
@@ -1488,6 +1489,7 @@ h3 {
   margin-top: 18px;
   font-size: 13px;
   color: var(--ink-3);
+  text-align: center;
 }
 
 /* ---- native ---- */

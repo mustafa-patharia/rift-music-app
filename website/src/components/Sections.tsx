@@ -33,8 +33,11 @@ function RiftWindow({ children }: { children: React.ReactNode }) {
 // mismatch). Bars rendered twice for a seamless translateX(-50%) loop.
 function WaveStrip({ bars = 46 }: { bars?: number }) {
   const set = Array.from({ length: bars }, (_, i) => {
-    const h = 16 + Math.round(64 * Math.abs(Math.sin(i * 0.5)) + 20 * Math.abs(Math.sin(i * 1.3 + 1)));
-    return { h: Math.min(100, h), hot: h > 74 || i % 6 === 0 };
+    // Deterministic pseudo-randomness to avoid hydration mismatch
+    const seed = Math.sin(i * 9999) * 10000;
+    const random = seed - Math.floor(seed);
+    const h = 16 + Math.round(84 * random);
+    return { h: Math.min(100, h), hot: true };
   });
   const row = (k: string) =>
     set.map((b, i) => <i key={`${k}-${i}`} className={b.hot ? "hot" : ""} style={{ height: `${b.h}%` }} />);
