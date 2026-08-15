@@ -22,7 +22,14 @@ export const metadata: Metadata = {
   title: "Rift Music App — the Mac-native YouTube Music client",
   description:
     "Rift Music App is a beautiful, fully native macOS YouTube Music client. A Dynamic Island for your music, Liquid Glass on macOS 26 Tahoe, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
-  icons: { icon: asset("/brand/rift-128.png") },
+  icons: {
+    icon: [
+      { url: asset("/brand/favicon-32.png"), sizes: "32x32", type: "image/png" },
+      { url: asset("/brand/favicon-16.png"), sizes: "16x16", type: "image/png" },
+      { url: asset("/brand/rift-128.png"), sizes: "128x128", type: "image/png" },
+    ],
+    apple: asset("/brand/apple-touch-icon.png"),
+  },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   keywords: ["Rift Music App", "YouTube Music", "macOS", "Mac music player", "SwiftUI", "Dynamic Island", "native"],
