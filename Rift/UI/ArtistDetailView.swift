@@ -51,6 +51,7 @@ struct ArtistDetailView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
+        .noScrollbar()
         .navigationBarBackButtonHidden(true)   // custom back lives in the content
         .task { await load() }
     }
@@ -137,6 +138,7 @@ struct ArtistDetailView: View {
                 }
                 .padding(.horizontal, 22)
             }
+            .noScrollbar()
         }
     }
 

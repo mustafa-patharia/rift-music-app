@@ -23,7 +23,7 @@ struct RiftApp: App {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 1250, height: 850)
+        .defaultSize(width: 875, height: 600)
         .defaultPosition(.center)
         // NOT .contentMinSize: that pins the window's floor to whatever the
         // content subtree computes (here ~1250×850, from the fixed sidebar +

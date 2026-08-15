@@ -50,6 +50,7 @@ struct LibraryView: View {
             .padding(.vertical, 20)
         }
         .scrollContentBackground(.hidden)
+        .noScrollbar()
         .task { await load() }
     }
 
@@ -65,6 +66,7 @@ struct LibraryView: View {
                 }
                 .padding(.horizontal, 22)
             }
+            .noScrollbar()
         }
     }
 
@@ -92,6 +94,7 @@ struct LibraryView: View {
                 }
                 .padding(.horizontal, 22)
             }
+            .noScrollbar()
         }
 
         if !auth.isAuthenticated && !downloads.isEmpty {

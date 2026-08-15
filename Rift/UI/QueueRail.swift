@@ -60,7 +60,7 @@ struct QueueRail: View {
                         }
                     }
                 }
-                .scrollIndicators(.hidden)
+                .noScrollbar()
                 // Drop anywhere in the rail (incl. below the rows) commits.
                 .onDrop(of: [.text], delegate: QueueDropDelegate(
                     targetId: nil, draggingId: $draggingId,

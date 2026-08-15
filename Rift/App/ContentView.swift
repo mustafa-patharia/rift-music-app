@@ -178,18 +178,23 @@ struct ContentView: View {
         let target = hasOnboarded ? Self.appMinSize : Self.onboardingSize
         guard w.contentMinSize != target else { return }   // idempotent: this runs on every update
 
-        w.contentMinSize = target
+        // WindowAccessor.updateNSView calls this synchronously from inside
+        // SwiftUI's view-update pass, which can land mid layout pass. AppKit
+        // throws (crashes, since exceptions are fatal here) if constraints are
+        // invalidated mid-layout, so every window mutation below must be
+        // deferred to the next run-loop turn.
+        DispatchQueue.main.async {
+            w.contentMinSize = target
 
-        if !hasOnboarded {
-            w.setContentSize(Self.onboardingSize)
-            w.center()
-        } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
-            // Only when leaving onboarding within this launch. A normal launch
-            // is left alone so SwiftUI's .defaultSize (or the user's remembered
-            // frame) wins instead of racing with it. Opens at exactly the
-            // defined minimum — a separate, larger "open size" here would
-            // just get silently clamped back to appMinSize anyway.
-            DispatchQueue.main.async {
+            if !self.hasOnboarded {
+                w.setContentSize(Self.onboardingSize)
+                w.center()
+            } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
+                // Only when leaving onboarding within this launch. A normal launch
+                // is left alone so SwiftUI's .defaultSize (or the user's remembered
+                // frame) wins instead of racing with it. Opens at exactly the
+                // defined minimum — a separate, larger "open size" here would
+                // just get silently clamped back to appMinSize anyway.
                 w.setContentSize(Self.appMinSize)
                 w.center()
             }

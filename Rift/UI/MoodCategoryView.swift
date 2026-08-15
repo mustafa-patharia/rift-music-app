@@ -38,6 +38,7 @@ struct MoodCategoryView: View {
                                 }
                                 .padding(.horizontal, 22)
                             }
+                            .noScrollbar()
                         }
                     }
                 }
@@ -45,6 +46,7 @@ struct MoodCategoryView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
+        .noScrollbar()
         .navigationBarBackButtonHidden(true)
         .task { await load() }
     }

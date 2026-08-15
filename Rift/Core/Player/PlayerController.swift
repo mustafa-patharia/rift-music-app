@@ -44,6 +44,12 @@ final class PlayerController: ObservableObject {
     private var pendingSeek: TimeInterval?
     private var sourceStarted = false     // false until the first load() this launch
 
+    // Crossfade (macOS 26+ native only — see NativePlayer.beginCrossfade): begin
+    // fading into the next track this many seconds before the current one ends;
+    // isCrossfading guards against re-triggering every 250ms while it's in flight.
+    private static let crossfadeLeadTime: TimeInterval = 5
+    private var isCrossfading = false
+
     // App Nap guard. Once audio stops at a track boundary the process becomes
     // nap-eligible INSTANTLY — macOS froze us between `ended` and starting the
     // next song (auto-advance only ran when a click woke the app; the notch eq
@@ -64,6 +70,7 @@ final class PlayerController: ObservableObject {
         source.state.receive(on: DispatchQueue.main).sink { [weak self] in self?.onState($0) }.store(in: &bag)
         source.currentTime.receive(on: DispatchQueue.main).sink { [weak self] in self?.onTime($0) }.store(in: &bag)
         source.duration.receive(on: DispatchQueue.main).sink { [weak self] in self?.onDuration($0) }.store(in: &bag)
+        source.advanced.receive(on: DispatchQueue.main).sink { [weak self] in self?.onAdvanced($0) }.store(in: &bag)
 
         nowPlaying = NowPlayingCenter(.init(
             play: { [weak self] in self?.source.play() },
@@ -220,6 +227,8 @@ final class PlayerController: ObservableObject {
     }
 
     private func start(_ t: PlayableTrack) {
+        source.cancelCrossfade()            // abandon any in-flight crossfade — user jumped tracks
+        isCrossfading = false
         closeHistorySession()               // log the outgoing track's listen
         sessionStart = Date()
         sessionMaxTime = 0
@@ -337,12 +346,33 @@ final class PlayerController: ObservableObject {
             onState(.ended)   // same path as a natural end: log history, advance
             return
         }
+        if !isCrossfading, state == .playing, hasNext, duration > 0,
+           duration - t <= Self.crossfadeLeadTime {
+            isCrossfading = true
+            source.beginCrossfade(to: queue[index + 1])
+        }
         // Cheap: only refresh elapsed on the system UI, not the whole payload.
         nowPlaying.update(track: track, duration: duration, elapsed: t, playing: isPlaying)
     }
     private func onDuration(_ d: TimeInterval) {
         guard sourceStarted else { return }   // see onState
         duration = d; pushNowPlaying()
+    }
+
+    /// Source crossfaded into the next track on its own — mirror the position
+    /// change without a load()/reload, same as a natural .ended → next() advance
+    /// but without the gap.
+    private func onAdvanced(_ t: PlayableTrack) {
+        guard hasNext, queue[index + 1] == t else { return }
+        closeHistorySession()
+        index += 1
+        track = t
+        sessionStart = Date()
+        sessionMaxTime = 0
+        isCrossfading = false
+        pushNowPlaying()
+        saveResume(force: true)
+        if hasNext { source.preload(queue[index + 1]) }
     }
 
     private func pushNowPlaying() {

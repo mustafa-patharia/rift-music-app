@@ -141,6 +141,7 @@ struct NowPlayingBar: View {
             if !editing { player.seek(to: scrubValue) }
         }
         .controlSize(.mini)
+        .tint(.accentColor)   // played portion — matches the system accent color
         // onAppear too: a restored (resume-on-launch) session sets currentTime
         // BEFORE this view exists, so onChange alone leaves the knob at 0.
         .onAppear { scrubValue = min(player.currentTime, dur) }

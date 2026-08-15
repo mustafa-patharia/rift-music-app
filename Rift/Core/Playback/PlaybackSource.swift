@@ -29,6 +29,13 @@ enum PlaybackState: Equatable {
 extension PlaybackSource {
     func preload(_ track: PlayableTrack) {}   // sources that don't cache opt out
     func reload() {}                          // re-attempt current track fresh (retry/self-heal)
+    // Crossfade is an optional, source-specific capability (macOS 26+ native only —
+    // a hidden WebView can't run two overlapping streams). Sources that don't
+    // support it silently no-op and the controller falls back to its normal
+    // .ended → next() advance.
+    var advanced: AnyPublisher<PlayableTrack, Never> { Empty().eraseToAnyPublisher() }
+    func beginCrossfade(to track: PlayableTrack) {}
+    func cancelCrossfade() {}
 }
 
 /// The one interface the whole app plays through. Implementations:
@@ -40,12 +47,21 @@ protocol PlaybackSource: AnyObject {
     var state: AnyPublisher<PlaybackState, Never> { get }
     var currentTime: AnyPublisher<TimeInterval, Never> { get }
     var duration: AnyPublisher<TimeInterval, Never> { get }
+    /// Fires when the source silently swapped to a new track on its own
+    /// (crossfade completed) — the controller updates queue position/history
+    /// without calling load(). Default: never fires.
+    var advanced: AnyPublisher<PlayableTrack, Never> { get }
 
     func load(_ track: PlayableTrack)
     /// Warm any resolve/cache for a track likely to play next. Default no-op.
     func preload(_ track: PlayableTrack)
     /// Re-attempt the current track from a fresh resolve. Default no-op.
     func reload()
+    /// Start crossfading into `track` ahead of the current track's natural end.
+    /// Default no-op — sources without crossfade support just let .ended fire.
+    func beginCrossfade(to track: PlayableTrack)
+    /// Abort an in-flight crossfade (user manually skipped/changed track). Default no-op.
+    func cancelCrossfade()
     func play()
     func pause()
     func seek(to seconds: TimeInterval)
