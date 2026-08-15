@@ -188,7 +188,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Rift";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rift Music App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -212,7 +212,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Rift";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rift Music App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
