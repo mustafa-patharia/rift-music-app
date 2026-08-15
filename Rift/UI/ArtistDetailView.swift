@@ -51,7 +51,6 @@ struct ArtistDetailView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle(page?.name ?? card.title)
         .navigationBarBackButtonHidden(true)   // custom back lives in the content
         .task { await load() }
     }

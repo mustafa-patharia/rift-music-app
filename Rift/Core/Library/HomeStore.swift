@@ -95,10 +95,16 @@ final class HomeStore: ObservableObject {
         likedDiscovery = HomeSection(title: "Because you liked \(seed.title)", cards: Array(cards))
     }
 
+    /// Minimum plays in history before "Your top artists" means anything —
+    /// below this a ranking is just whatever got played first, not a taste
+    /// signal.
+    private static let minPlaysForTopArtists = 100
+
     /// Most-listened artists from local history → artist cards (name → search
     /// lookup, capped at 6 to keep it one cheap burst).
     func refreshTopArtists() async {
         let events = await PlayHistoryStore.shared.all()
+        guard events.count >= Self.minPlaysForTopArtists else { topArtists = []; return }
         var secs: [String: TimeInterval] = [:]
         for e in events where !e.cleanArtist.isEmpty {
             secs[e.cleanArtist, default: 0] += e.cleanSeconds

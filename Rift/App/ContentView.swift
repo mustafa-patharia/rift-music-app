@@ -169,10 +169,7 @@ struct ContentView: View {
     // content's own computed minimum (~1250×850), so a smaller minWidth in
     // RiftApp was silently ignored. NSWindow.contentMinSize is absolute.
 
-    private static let appMinSize = NSSize(width: 875, height: 875)
-    /// The app proper opens at 1250×850 — that's also what HomeView's carousels
-    /// compute as their natural minimum.
-    private static let appOpenSize = NSSize(width: 875, height: 600)
+    private static let appMinSize = NSSize(width: 875, height: 600)
     /// Onboarding is a centred card, so the window shrinks to just fit it and
     /// grows back to the app size when the flow finishes.
     private static let onboardingSize = NSSize(width: 600, height: 560)
@@ -189,9 +186,11 @@ struct ContentView: View {
         } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
             // Only when leaving onboarding within this launch. A normal launch
             // is left alone so SwiftUI's .defaultSize (or the user's remembered
-            // frame) wins instead of racing with it.
+            // frame) wins instead of racing with it. Opens at exactly the
+            // defined minimum — a separate, larger "open size" here would
+            // just get silently clamped back to appMinSize anyway.
             DispatchQueue.main.async {
-                w.setContentSize(Self.appOpenSize)
+                w.setContentSize(Self.appMinSize)
                 w.center()
             }
         }

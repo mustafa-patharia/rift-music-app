@@ -57,7 +57,6 @@ struct LocalPlaylistView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle(store.playlist(id)?.title ?? "Playlist")
         .navigationBarBackButtonHidden(true)
         .alert("Rename Playlist", isPresented: $renaming) {
             TextField("Name", text: $draftName)
