@@ -268,9 +268,23 @@ struct InnerTubeClient {
         let title = flexText(cols, 0) ?? "Unknown"
         // Column 1 joins ALL byline runs — "Artist • Album • 3:29". Keep only
         // the artist segment or history/stats aggregate garbage strings.
-        let artist = (flexText(cols, 1) ?? "").components(separatedBy: " • ").first ?? ""
+        let byline = (flexText(cols, 1) ?? "").components(separatedBy: " • ")
+        let artist = byline.first ?? ""
+        // The trailing segment is usually the track length — YTM's own duration,
+        // independent of yt-dlp/AVPlayer (which occasionally misreads an m4a
+        // container's length). Prefer this over ever falling back to AVPlayer's.
+        let duration = byline.last.flatMap(parseDuration)
         let art = artworkURL(firstString(in: r, key: "url"))
-        return PlayableTrack(id: videoId, title: title, artist: artist, artworkURL: art, duration: nil)
+        return PlayableTrack(id: videoId, title: title, artist: artist, artworkURL: art, duration: duration)
+    }
+
+    /// "3:29" / "1:02:03" → seconds. nil if it doesn't look like a duration.
+    private static func parseDuration(_ s: String) -> TimeInterval? {
+        let parts = s.split(separator: ":")
+        guard (2...3).contains(parts.count), parts.allSatisfy({ $0.allSatisfy(\.isNumber) }) else { return nil }
+        let nums = parts.compactMap { TimeInterval($0) }
+        guard nums.count == parts.count else { return nil }
+        return nums.reduce(0) { $0 * 60 + $1 }
     }
 
     /// YTM serves tiny thumbnails (w60/w120…). Rewrite the size params to a
@@ -401,8 +415,9 @@ struct InnerTubeClient {
             let artist = runsText(r["longBylineText"])
                 .components(separatedBy: " • ").first ?? ""
             let art = artworkURL(firstString(in: r, key: "url"))
+            let duration = runsText(r["lengthText"]).isEmpty ? nil : parseDuration(runsText(r["lengthText"]))
             return PlayableTrack(id: vid, title: title.isEmpty ? "Unknown" : title,
-                                 artist: artist, artworkURL: art, duration: nil)
+                                 artist: artist, artworkURL: art, duration: duration)
         }
     }
 
@@ -489,7 +504,10 @@ struct InnerTubeClient {
                 }
                 return nil
             }
-            return cards.isEmpty ? nil : HomeSection(title: title, cards: cards)
+            // YTM occasionally repeats the same item within one carousel.
+            var seenIds = Set<String>()
+            let deduped = cards.filter { seenIds.insert($0.id).inserted }
+            return deduped.isEmpty ? nil : HomeSection(title: title, cards: deduped)
         }
     }
 

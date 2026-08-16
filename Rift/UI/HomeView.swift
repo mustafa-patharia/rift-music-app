@@ -116,21 +116,34 @@ struct HomeView: View {
             Text("Moods & genres").font(.title3.bold()).padding(.horizontal, 22)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
                 ForEach(store.moods) { mood in
-                    NavigationLink(value: mood) {
-                        Text(mood.title)
-                            .font(.callout.weight(.medium))
-                            .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 14).padding(.vertical, 12)
-                            .glassEffect(in: .rect(cornerRadius: 10))
-                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(.white.opacity(0.10)))
-                            .contentShape(.rect)
-                    }
-                    .buttonStyle(.plain)
+                    MoodChip(mood: mood)
                 }
             }
             .padding(.horizontal, 22)
         }
+    }
+}
+
+private struct MoodChip: View {
+    let mood: InnerTubeClient.MoodCategory
+    @State private var hover = false
+
+    var body: some View {
+        NavigationLink(value: mood) {
+            Text(mood.title)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .liquidGlass(in: .rect(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(.white.opacity(hover ? 0.22 : 0.10)))
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(hover ? 1.035 : 1)
+        .brightness(hover ? 0.06 : 0)
+        .animation(.spring(response: 0.28, dampingFraction: 0.7), value: hover)
+        .onHover { hover = $0 }
     }
 }

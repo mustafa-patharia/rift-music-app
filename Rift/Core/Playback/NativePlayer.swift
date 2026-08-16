@@ -14,17 +14,24 @@ final class NativePlayer: NSObject, PlaybackSource {
     private let stateSubject = CurrentValueSubject<PlaybackState, Never>(.idle)
     private let timeSubject = CurrentValueSubject<TimeInterval, Never>(0)
     private let durationSubject = CurrentValueSubject<TimeInterval, Never>(0)
+    private let advancedSubject = PassthroughSubject<PlayableTrack, Never>()
 
     var state: AnyPublisher<PlaybackState, Never> { stateSubject.eraseToAnyPublisher() }
     var currentTime: AnyPublisher<TimeInterval, Never> { timeSubject.eraseToAnyPublisher() }
     var duration: AnyPublisher<TimeInterval, Never> { durationSubject.eraseToAnyPublisher() }
+    var advanced: AnyPublisher<PlayableTrack, Never> { advancedSubject.eraseToAnyPublisher() }
 
-    private let player = AVPlayer()
+    private var player = AVPlayer()
     private var timeObserver: Any?
     private var itemObservers = Set<AnyCancellable>()
     private var resolveTask: Task<Void, Never>?
     private var current: PlayableTrack?     // for self-heal reloads
     private var triedFresh = false          // one forced re-resolve per load
+
+    // MARK: crossfade (macOS 26+ only — see beginCrossfade)
+    private static let crossfadeDuration: TimeInterval = 5
+    private var crossfadePlayer: AVPlayer?
+    private var crossfadeTask: Task<Void, Never>?
 
     override init() {
         super.init()
@@ -145,16 +152,26 @@ final class NativePlayer: NSObject, PlaybackSource {
 
     private func setItem(_ url: URL, knownDuration: TimeInterval?, headers: [String: String] = [:]) {
         itemObservers.removeAll()   // drop the previous item's KVO/notification subs (leak fix)
+        let item = Self.makeItem(url: url, headers: headers)
+        wireObservers(item, knownDuration: knownDuration, into: &itemObservers)
+        player.replaceCurrentItem(with: item)
+        play()
+    }
 
+    private static func makeItem(url: URL, headers: [String: String]) -> AVPlayerItem {
         // googlevideo CDN URLs require yt-dlp's headers (User-Agent etc.) or they
         // 403 → AVPlayer reports a generic "unknown error". Pass them through.
         let asset = headers.isEmpty
             ? AVURLAsset(url: url)
             : AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
-        let item = AVPlayerItem(asset: asset)
+        return AVPlayerItem(asset: asset)
+    }
 
-        // Duration + status via KVO → Combine. For YouTube streams we already have
-        // the real duration from yt-dlp; ignore AVPlayer's (it doubles some m4a).
+    /// Duration + status/end-of-track KVO → Combine, shared by the normal load path
+    /// and a completed crossfade's newly-active item.
+    private func wireObservers(_ item: AVPlayerItem, knownDuration: TimeInterval?, into bag: inout Set<AnyCancellable>) {
+        // For YouTube streams we already have the real duration from yt-dlp;
+        // ignore AVPlayer's (it doubles some m4a).
         item.publisher(for: \.status).receive(on: DispatchQueue.main).sink { [weak self] status in
             guard let self else { return }
             switch status {
@@ -174,16 +191,87 @@ final class NativePlayer: NSObject, PlaybackSource {
                 }
             default: break
             }
-        }.store(in: &itemObservers)
+        }.store(in: &bag)
 
-        // End-of-track.
         NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: item)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.stateSubject.send(.ended) }
-            .store(in: &itemObservers)
+            .store(in: &bag)
+    }
 
-        player.replaceCurrentItem(with: item)
-        play()
+    // MARK: crossfade (macOS 26+ only)
+    //
+    // Below macOS 26 this stays a no-op via the protocol default — the single-
+    // AVPlayer swap above is untouched and keeps its existing reliability.
+    // Only triggers when `track`'s stream is already warm in StreamCache (the
+    // controller preloads the next track when a song starts) — crossfading into
+    // a cold resolve would just stutter, so skip it and let .ended → next() run.
+    func beginCrossfade(to track: PlayableTrack) {
+        guard #available(macOS 26, *), crossfadePlayer == nil else { return }
+        if let fileURL = URL(string: track.id), fileURL.isFileURL {
+            startCrossfade(to: track, url: fileURL, headers: [:])
+            return
+        }
+        crossfadeTask = Task { [weak self] in
+            guard let self, let cached = await StreamCache.shared.get(track.id) else { return }
+            self.startCrossfade(to: track, url: cached.url, headers: cached.headers)
+        }
+    }
+
+    func cancelCrossfade() {
+        crossfadeTask?.cancel()
+        crossfadeTask = nil
+        crossfadePlayer?.pause()
+        crossfadePlayer = nil
+    }
+
+    private func startCrossfade(to track: PlayableTrack, url: URL, headers: [String: String]) {
+        let item = Self.makeItem(url: url, headers: headers)
+        let fadeIn = AVPlayer(playerItem: item)
+        fadeIn.volume = 0
+        fadeIn.play()
+        crossfadePlayer = fadeIn
+
+        let startVolume = player.volume
+        let steps = 20
+        let stepNanos = UInt64(Self.crossfadeDuration / Double(steps) * 1_000_000_000)
+        crossfadeTask = Task { [weak self] in
+            for i in 1...steps {
+                try? await Task.sleep(nanoseconds: stepNanos)
+                guard let self, self.crossfadePlayer === fadeIn else { return }   // canceled/superseded
+                let progress = Float(i) / Float(steps)
+                self.player.volume = startVolume * (1 - progress)
+                fadeIn.volume = progress
+            }
+            self?.completeCrossfade(to: track, item: item, newPlayer: fadeIn)
+        }
+    }
+
+    private func completeCrossfade(to track: PlayableTrack, item: AVPlayerItem, newPlayer: AVPlayer) {
+        guard crossfadePlayer === newPlayer else { return }   // canceled mid-flight
+        if let obs = timeObserver { player.removeTimeObserver(obs) }
+        itemObservers.removeAll()
+        player.pause()
+        player.replaceCurrentItem(with: nil)
+
+        player = newPlayer
+        current = track
+        triedFresh = false
+        crossfadePlayer = nil
+        crossfadeTask = nil
+        wireObservers(item, knownDuration: track.duration, into: &itemObservers)
+        // Trust yt-dlp's metadata duration only — same rule as the normal load
+        // path (see setItem/wireObservers). item.duration here may not be
+        // ready yet (NaN) or double-reported for some m4a containers; if we
+        // don't have the real one, let wireObservers' readyToPlay handler send
+        // a validated one once the item actually settles.
+        if let d = track.duration, d > 0 { durationSubject.send(d) }
+        timeObserver = player.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.25, preferredTimescale: 600), queue: .main
+        ) { [weak self] t in
+            MainActor.assumeIsolated { self?.timeSubject.send(t.seconds) }
+        }
+        advancedSubject.send(track)
     }
 
     func play() {

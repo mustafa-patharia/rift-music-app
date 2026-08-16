@@ -6,6 +6,7 @@
 // desktop wallpaper blurs through (VisualEffectBackground + WindowConfigurator).
 
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @EnvironmentObject var player: PlayerController
@@ -14,6 +15,7 @@ struct ContentView: View {
     @ObservedObject private var playlistStore = PlaylistStore.shared
     @State private var panel: Panel = .home
     @State private var newPlaylistName = ""
+    @AppStorage("hasOnboarded") private var hasOnboarded = false
 
     private var hasTrack: Bool { player.track != nil }
 
@@ -93,12 +95,8 @@ struct ContentView: View {
         // be its own window. Grab our NSWindow and hand it over.
         .background(WindowAccessor { w in
             AppServices.shared.playerPanel.attach(to: w)
-            // Draw edge-to-edge under the title bar so the center column (and the
-            // full player) reach the very top — no title-bar strip gap. Traffic
-            // lights float over the sidebar's top padding (standard music-app look).
-            w.styleMask.insert(.fullSizeContentView)
-            w.titlebarAppearsTransparent = true
-            w.titleVisibility = .hidden
+            applyWindowChrome(w)
+            applyWindowSize(w)
         })
         // Home feed is cached in HomeStore — re-personalize it on sign-in/out.
         .onChange(of: auth.isAuthenticated) { _, _ in
@@ -123,6 +121,18 @@ struct ContentView: View {
                 Text("“\(t.title)” will be its first song.")
             }
         }
+        .overlay {
+            if !hasOnboarded {
+                OnboardingView { hasOnboarded = true }
+                    .transition(.opacity)
+                    .zIndex(2)
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: hasOnboarded)
+        // Tell the detached player panel (its own NSWindow) to stay down while
+        // the welcome flow owns the screen.
+        .onAppear { ui.onboarding = !hasOnboarded }
+        .onChange(of: hasOnboarded) { _, done in ui.onboarding = !done }
         .sheet(isPresented: $auth.showingLogin) {
             NavigationStack {
                 GoogleSignInView { auth.completed($0) }
@@ -147,4 +157,60 @@ struct ContentView: View {
         }
     }
 
+    // MARK: window sizing
+    //
+    // Sizes come from RiftWindow (RiftApp.swift) so the absolute floor here can
+    // never drift from the .frame/.defaultSize declared there. This floor is
+    // applied to the NSWindow because contentMinSize is absolute, whereas
+    // .windowResizability(.contentMinSize) would derive the minimum from the
+    // content subtree's own computed size and override it.
+
+    private static let appMinSize = NSSize(width: RiftWindow.minSize.width,
+                                           height: RiftWindow.minSize.height)
+    private static let onboardingSize = NSSize(width: RiftWindow.onboardingSize.width,
+                                               height: RiftWindow.onboardingSize.height)
+
+    /// Draw edge-to-edge under the title bar so the center column (and the full
+    /// player) reach the very top — no title-bar strip gap. Traffic lights float
+    /// over the sidebar's top padding (standard music-app look).
+    ///
+    /// Guarded + deferred for the same reason as applyWindowSize below: this runs
+    /// from WindowAccessor.updateNSView on EVERY SwiftUI update, and assigning
+    /// styleMask rebuilds the window's theme frame (invalidating constraints).
+    /// Doing that mid-layout is what throws.
+    private func applyWindowChrome(_ w: NSWindow) {
+        guard !w.styleMask.contains(.fullSizeContentView) else { return }
+        DispatchQueue.main.async {
+            w.styleMask.insert(.fullSizeContentView)
+            w.titlebarAppearsTransparent = true
+            w.titleVisibility = .hidden
+        }
+    }
+
+    private func applyWindowSize(_ w: NSWindow) {
+        let target = hasOnboarded ? Self.appMinSize : Self.onboardingSize
+        guard w.contentMinSize != target else { return }   // idempotent: this runs on every update
+
+        // WindowAccessor.updateNSView calls this synchronously from inside
+        // SwiftUI's view-update pass, which can land mid layout pass. AppKit
+        // throws (crashes, since exceptions are fatal here) if constraints are
+        // invalidated mid-layout, so every window mutation below must be
+        // deferred to the next run-loop turn.
+        DispatchQueue.main.async {
+            w.contentMinSize = target
+
+            if !self.hasOnboarded {
+                w.setContentSize(Self.onboardingSize)
+                w.center()
+            } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
+                // Only when leaving onboarding within this launch. A normal launch
+                // is left alone so SwiftUI's .defaultSize (or the user's remembered
+                // frame) wins instead of racing with it. Opens at exactly the
+                // defined minimum — a separate, larger "open size" here would
+                // just get silently clamped back to appMinSize anyway.
+                w.setContentSize(Self.appMinSize)
+                w.center()
+            }
+        }
+    }
 }

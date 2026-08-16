@@ -10,6 +10,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions follow
 ### Coming
 - More interesting things to come.
 
+## [0.0.2] — 2026-08-15
+
+### Added
+- **Gapless crossfade** for smooth transitions between songs.
+- **Multilingual lyrics AI** support.
+- **Non-notch display settings** for older Macs.
+- **Onboarding flow** and Liquid Glass fallback.
+- Website deployment moved to Vercel; added Terms, Privacy, and Chai support link.
+
+### Changed
+- Settings redesign for a cleaner, more intuitive interface.
+- Gated top-artists on play count.
+- Dropped redundant nav titles.
+
+### Fixed
+- Fixed a window sizing race condition.
+- Fixed duration and scrollbar issues.
+- OAuth cleanup and icon fixes.
+
 ## [0.1.0] — 2026-07-27
 
 First public release. 🎉

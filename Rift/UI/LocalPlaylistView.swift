@@ -57,7 +57,6 @@ struct LocalPlaylistView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle(store.playlist(id)?.title ?? "Playlist")
         .navigationBarBackButtonHidden(true)
         .alert("Rename Playlist", isPresented: $renaming) {
             TextField("Name", text: $draftName)
@@ -83,7 +82,7 @@ struct LocalPlaylistView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.primary)
                 .frame(width: 34, height: 34)
-                .glassEffect(.regular.interactive(), in: .circle)
+                .liquidGlass(true, in: .circle)
                 .overlay(Circle().strokeBorder(.white.opacity(0.12)))
         }
         .buttonStyle(.plain)
@@ -112,7 +111,7 @@ struct LocalPlaylistView: View {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 14, weight: .semibold))
                             .frame(width: 34, height: 34)
-                            .glassEffect(.regular.interactive(), in: .circle)
+                            .liquidGlass(true, in: .circle)
                             .overlay(Circle().strokeBorder(.white.opacity(0.15)))
                             .contentShape(.circle)
                     }

@@ -9,6 +9,28 @@
 
 import SwiftUI
 
+/// Single source of truth for the main window's geometry. Both the SwiftUI
+/// declaration below and the absolute NSWindow floor in ContentView read these,
+/// so the default size and the minimum size can never drift apart.
+enum RiftWindow {
+    /// The main window is BOTH opened at and floored to this size.
+    static let minSize = CGSize(width: 875, height: 600)
+    /// Onboarding is a centred card, so the window shrinks to just fit it and
+    /// grows back to `minSize` when the flow finishes.
+    static let onboardingSize = CGSize(width: 600, height: 560)
+}
+
+extension Color {
+    /// Rift's brand accent (the website's `--accent-crim`, #FF2F3A).
+    ///
+    /// Player chrome uses this rather than `.accentColor` because on macOS
+    /// `.accentColor` resolves to the *system* accent from System Settings →
+    /// Appearance; the app's own AccentColor asset only wins when the user has
+    /// that set to "Multicolor". Keying off this constant means the played
+    /// portion of a scrubber is Rift red on every machine.
+    static let riftAccent = Color(red: 1.0, green: 0.184, blue: 0.227)
+}
+
 @main
 struct RiftApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
@@ -20,16 +42,18 @@ struct RiftApp: App {
                 .environmentObject(AppServices.shared.auth)
                 .environmentObject(AppServices.shared.ui)
                 .environmentObject(AppServices.shared.mode)
-                .frame(minWidth: 1250, maxWidth: .infinity,
-                       minHeight: 850, maxHeight: .infinity)
+                .frame(minWidth: RiftWindow.minSize.width, maxWidth: .infinity,
+                       minHeight: RiftWindow.minSize.height, maxHeight: .infinity)
         }
         .windowStyle(.hiddenTitleBar)
-        // Open at the content minimum, not larger — a first launch shouldn't
-        // take over the screen. macOS remembers the frame after that, so this
-        // only applies until the user resizes it once.
-        .defaultSize(width: 1250, height: 850)
+        // Opens at exactly the minimum — default and floor are the same size.
+        .defaultSize(width: RiftWindow.minSize.width, height: RiftWindow.minSize.height)
         .defaultPosition(.center)
-        .windowResizability(.contentMinSize)
+        // NOT .contentMinSize: that pins the window's floor to whatever the
+        // content subtree computes, which silently overrode the minimum set
+        // here. The real floor is applied to the NSWindow in ContentView's
+        // WindowAccessor, which also shrinks the window for onboarding.
+        .windowResizability(.automatic)
         .commands {
             CommandMenu("Playback") {
                 let p = AppServices.shared.player

@@ -16,26 +16,36 @@ struct LibraryView: View {
     @State private var playlists: [MusicCard] = []
     @State private var loadedPlaylists = false
 
+    private var isEmpty: Bool {
+        downloads.isEmpty && playlists.isEmpty && playlistStore.playlists.isEmpty
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 Text("Library").font(.largeTitle.bold()).padding(.horizontal, 22)
 
-                if downloads.isEmpty && playlists.isEmpty && playlistStore.playlists.isEmpty {
-                    ContentUnavailableView(
-                        "Nothing here yet",
-                        systemImage: "square.stack",
-                        description: Text("Use Download on any song to keep it offline — it shows up here, along with your playlists.")
-                    )
+                if isEmpty {
+                    // Empty state owns the whole page — showing it above an
+                    // empty "Your Playlists" shelf read as a broken layout.
+                    ContentUnavailableView {
+                        Label("Nothing here yet", systemImage: "square.stack")
+                    } description: {
+                        Text("Use Download on any song to keep it offline — it shows up here, along with your playlists.")
+                    } actions: {
+                        GlassPillButton("New Playlist", icon: "plus") {
+                            playlistStore.newPrompt = .init(track: nil)
+                        }
+                    }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 60)
+                } else {
+                    if !downloads.isEmpty { downloadsSection }
+                    // Liked songs live inside "Your Playlists" as the Liked Music
+                    // auto-playlist — no separate listing (owner's call). History
+                    // lives on Home ("Recently played" → View more), not here.
+                    playlistsSection
                 }
-
-                if !downloads.isEmpty { downloadsSection }
-                // Liked songs live inside "Your Playlists" as the Liked Music
-                // auto-playlist — no separate listing (owner's call). History
-                // lives on Home ("Recently played" → View more), not here.
-                playlistsSection
             }
             .padding(.vertical, 20)
         }
@@ -63,7 +73,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .bottom) {
                 shelfHeader("Your Playlists",
-                            subtitle: auth.isAuthenticated ? "yours + YouTube Music" : "created here")
+                            subtitle: auth.isAuthenticated ? "yours + YouTube Music" : "created in Rift")
                 Spacer()
                 GlassPillButton("New Playlist", icon: "plus") {
                     playlistStore.newPrompt = .init(track: nil)
@@ -93,7 +103,7 @@ struct LibraryView: View {
                 GlassPillButton("Sign in") { auth.showingLogin = true }
             }
             .padding(14)
-            .glassEffect(in: .rect(cornerRadius: 14))
+            .liquidGlass(in: .rect(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.10)))
             .padding(.horizontal, 22)
         }

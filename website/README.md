@@ -1,6 +1,6 @@
-# Rift — website (Next.js)
+# Rift Music App — website (Next.js)
 
-Static Next.js site for Rift ("The Mastering Room" concept, see
+Static Next.js site for Rift Music App ("The Mastering Room" concept, see
 [`../WEBSITE_BUILD_PROMPT.md`](../WEBSITE_BUILD_PROMPT.md)). Server components emit
 full HTML (works with JS disabled); one client `Enhancements` component adds GSAP
 motion, the bottom waveform scrubber, album-poster parallax, the scroll-pinned
@@ -13,16 +13,15 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-## Build (static export → GitHub Pages)
+## Build
 ```bash
-npm run build      # emits ./out (output: "export")
+npm run build
 ```
-`out/` is plain static files — no server, no telemetry.
 
 ## Deploy
-Serve `website/out/` on GitHub Pages. In CI (`GITHUB_ACTIONS=true`)
-`next.config.mjs` sets `basePath`/`assetPrefix` to `/rift-music-app`; change the
-`repo` const there for a different Pages path, or drop both for a custom domain.
+Deployed on Vercel: https://rift-music-app.vercel.app/. Pushes to `main`
+(paths under `website/**`) deploy automatically via Vercel's own GitHub
+integration — no workflow file in this repo.
 
 ## Structure
 - `src/app/` — layout (fonts, theme script, metadata, JSON-LD, sitemap/robots), page (section order), `globals.css` (tokens + all styles)

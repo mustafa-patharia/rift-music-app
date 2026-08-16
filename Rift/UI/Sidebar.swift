@@ -28,10 +28,10 @@ struct Sidebar: View {
     @Namespace private var ns
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            group("Menu", [.home, .search])
-            group("Library", [.library, .stats]).padding(.top, 18)
-            appGroup.padding(.top, 18)
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Panel.allCases) { p in
+                NavRow(panel: p, selection: $panel, ns: ns).padding(.horizontal, 14)
+            }
 
             Spacer(minLength: 12)
             profileChip
@@ -44,28 +44,6 @@ struct Sidebar: View {
         // Own frosted panel so text stays readable over any poster/wallpaper.
         .background(.regularMaterial)
         .overlay(Rectangle().frame(width: 1).foregroundStyle(.white.opacity(0.08)), alignment: .trailing)
-    }
-
-    private func group(_ title: String, _ panels: [Panel]) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title.uppercased())
-                .font(.caption2.weight(.semibold)).foregroundStyle(.tertiary)
-                .padding(.horizontal, 20).padding(.bottom, 2)
-            ForEach(panels) { p in
-                NavRow(panel: p, selection: $panel, ns: ns).padding(.horizontal, 14)
-            }
-        }
-    }
-
-    // Queue lives on the player (pill + full player) — it only makes sense
-    // while something is playing, so no sidebar entry.
-    private var appGroup: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("APP").font(.caption2.weight(.semibold)).foregroundStyle(.tertiary)
-                .padding(.horizontal, 20).padding(.bottom, 2)
-
-            NavRow(panel: .settings, selection: $panel, ns: ns).padding(.horizontal, 14)
-        }
     }
 
     @ViewBuilder private var avatar: some View {
@@ -87,7 +65,7 @@ struct Sidebar: View {
 
     private var profileChip: some View {
         Button {
-            if !auth.isAuthenticated { auth.showingLogin = true }
+            if !auth.isAuthenticated { auth.signIn() }
         } label: {
             HStack(spacing: 10) {
                 avatar

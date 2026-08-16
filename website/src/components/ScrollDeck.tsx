@@ -15,8 +15,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const SHOTS = [
-  { n: "home_screen", l: "Home", title: "Your whole library, home.", sub: "Featured playlists, recently played, and your top artists — the moment you open Rift." },
-  { n: "full_screen_player_screen", l: "Now Playing", title: "Now Playing, in full.", sub: "Full-window album art, a live scrubber, and transport — Liquid Glass throughout." },
+  { n: "home_screen", l: "Home", title: "Your whole library, home.", sub: "Featured playlists, recently played, and your top artists — the moment you open Rift Music App." },
+  { n: "full_screen_player_screen", l: "Now Playing", title: "Now Playing, in full.", sub: "Full-window album art, a live scrubber, and transport — Liquid Glass on Tahoe." },
   { n: "player_with_lyrics_screen", l: "Lyrics", title: "Lyrics that keep time.", sub: "Synced lyrics with optional on-device transliteration and translation — even non-Latin scripts." },
   { n: "artist_screen", l: "Artist", title: "Every artist, in depth.", sub: "Bio, monthly listeners, top songs, albums, and one-tap radio — all native." },
   { n: "search_screen", l: "Search", title: "Search all of YouTube Music.", sub: "Trending charts, your recents, and top artists — the full catalog, one field." },
@@ -82,9 +82,9 @@ export default function ScrollDeck() {
   }, []);
 
   return (
-    <section className="scrolldeck" ref={sec} id="inside" aria-label="Inside Rift">
+    <section className="scrolldeck" ref={sec} id="inside" aria-label="Inside Rift Music App">
       <div className="scrolldeck-inner" ref={inner}>
-        <p className="eyebrow accent">Inside Rift</p>
+        <p className="eyebrow accent">Inside Rift Music App</p>
         <div className="sd-copy" ref={copy}>
           {SHOTS.map((s) => (
             <div className="sd-text" key={s.n}>
@@ -96,7 +96,7 @@ export default function ScrollDeck() {
         <div className="sd-stage" ref={stage}>
           {SHOTS.map((s) => (
             <figure className="sd-card" key={s.n}>
-              <Image src={asset(`/img/shots/${s.n}.png`)} alt={`Rift — ${s.l}`} fill sizes="(max-width: 820px) 92vw, 780px" style={{ objectFit: "cover", objectPosition: "top left" }} />
+              <Image src={asset(`/img/shots/${s.n}.png`)} alt={`Rift Music App — ${s.l}`} fill sizes="(max-width: 820px) 92vw, 780px" style={{ objectFit: "cover", objectPosition: "top left" }} />
               <span className="swap-card-label">{s.l}</span>
               <figcaption className="sd-cap"><b>{s.title}</b> {s.sub}</figcaption>
             </figure>

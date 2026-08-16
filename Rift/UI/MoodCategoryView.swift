@@ -45,7 +45,6 @@ struct MoodCategoryView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle(category.title)
         .navigationBarBackButtonHidden(true)
         .task { await load() }
     }

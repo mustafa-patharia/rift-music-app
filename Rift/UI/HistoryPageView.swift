@@ -39,7 +39,6 @@ struct HistoryPageView: View {
             .padding(.vertical)
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle("Recently Played")
         .navigationBarBackButtonHidden(true)
         .task {
             let events = await PlayHistoryStore.shared.all()

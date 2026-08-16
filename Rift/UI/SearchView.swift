@@ -45,7 +45,7 @@ struct SearchView: View {
                 }.buttonStyle(.plain)
             }
         }
-        .padding(12).glassEffect(in: .capsule)
+        .padding(12).liquidGlass(in: .capsule)
         .padding([.horizontal, .top], 20).padding(.bottom, 10)
     }
 

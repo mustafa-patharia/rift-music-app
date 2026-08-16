@@ -11,7 +11,12 @@ import Security
 enum Keychain {
     private static let service = "com.mymusicapp.auth"
 
-    static func set(_ data: Data, account: String) {
+    /// Returns the raw OSStatus so UI can report *why* a write failed — e.g. an
+    /// item created by another binary (the `security` CLI) whose ACL doesn't
+    /// trust this app, where the delete is refused and the add then hits
+    /// errSecDuplicateItem. Silent failure here is undiagnosable.
+    @discardableResult
+    static func set(_ data: Data, account: String) -> OSStatus {
         delete(account: account)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -20,7 +25,23 @@ enum Keychain {
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
-        SecItemAdd(query as CFDictionary, nil)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status == errSecSuccess { return status }
+        Log.auth.error("Keychain add failed for \(account, privacy: .public): OSStatus \(status)")
+        guard status == errSecDuplicateItem else { return status }
+
+        // Item survived the delete (foreign ACL): update the value in place.
+        let find: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        let update = SecItemUpdate(find as CFDictionary,
+                                   [kSecValueData as String: data] as CFDictionary)
+        if update != errSecSuccess {
+            Log.auth.error("Keychain update failed for \(account, privacy: .public): OSStatus \(update)")
+        }
+        return update
     }
 
     static func get(account: String) -> Data? {

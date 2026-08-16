@@ -33,8 +33,11 @@ function RiftWindow({ children }: { children: React.ReactNode }) {
 // mismatch). Bars rendered twice for a seamless translateX(-50%) loop.
 function WaveStrip({ bars = 46 }: { bars?: number }) {
   const set = Array.from({ length: bars }, (_, i) => {
-    const h = 16 + Math.round(64 * Math.abs(Math.sin(i * 0.5)) + 20 * Math.abs(Math.sin(i * 1.3 + 1)));
-    return { h: Math.min(100, h), hot: h > 74 || i % 6 === 0 };
+    // Deterministic pseudo-randomness to avoid hydration mismatch
+    const seed = Math.sin(i * 9999) * 10000;
+    const random = seed - Math.floor(seed);
+    const h = 16 + Math.round(84 * random);
+    return { h: Math.min(100, h), hot: true };
   });
   const row = (k: string) =>
     set.map((b, i) => <i key={`${k}-${i}`} className={b.hot ? "hot" : ""} style={{ height: `${b.h}%` }} />);
@@ -49,10 +52,10 @@ function WaveStrip({ bars = 46 }: { bars?: number }) {
 export function Hero() {
   return (
     <header className="hero" id="top">
-      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.0 — now with on-device AI lyrics</a>
+      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v0.0.2 is active</a>
       <h1 className="reveal">A player for <span className="accent-word">all</span><br /> your music.</h1>
       <p className="hero-sub reveal">
-        A native Mac YouTube Music client in SwiftUI with Liquid Glass — a Dynamic Island for your music,
+        A native Mac YouTube Music client in SwiftUI — a Dynamic Island for your music,
         offline downloads, and on-device lyrics. Your entire library in one window.
       </p>
       <div className="key-row reveal">
@@ -61,9 +64,9 @@ export function Hero() {
       </div>
       <p className="install-caption reveal">open source · GPL-3.0 · built in SwiftUI</p>
 
-      <div className="hero-visual reveal" data-tilt>
+      <div className="hero-artwork">
         <RiftWindow>
-          <Shot name="full_screen_player_screen" alt="Rift full-screen player playing Tujh Mein Rab Dikhta Hai" priority />
+          <Shot name="full_screen_player_screen" alt="Rift Music App full-screen player playing Tujh Mein Rab Dikhta Hai" priority />
         </RiftWindow>
       </div>
 
@@ -119,7 +122,7 @@ export function Features() {
         <article className="cell span7 reveal">
           <div className="motif vu" aria-hidden><span className="vu-needle" /></div>
           <h3>Native, end to end</h3>
-          <p>SwiftUI and Liquid Glass — real materials, real vibrancy, native menus and media keys. Built for the Mac, head to toe.</p>
+          <p>SwiftUI throughout — real materials, real vibrancy, native menus and media keys. Liquid Glass on macOS 26 Tahoe. Built for the Mac, head to toe.</p>
         </article>
         <article className="cell span5 reveal">
           <div className="motif eq" aria-hidden><i /><i /><i /><i /><i /></div>
@@ -142,9 +145,10 @@ export function Features() {
           <p>Top songs, top artists, listening clocks by hour and weekday — computed and stored on your Mac only.</p>
         </article>
         <article className="cell span6 invert reveal">
-          <div className="motif"><WaveStrip /></div>
-          <h3>Radio that never stops</h3>
-          <p>Queue runs out? Rift keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
+          <div className="feat-copy">
+          <h3 className="serif">Never stops playing.</h3>
+          <p>Queue runs out? Rift Music App keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
+        </div>
         </article>
         <article className="cell span6 reveal">
           <div className="motif sparkle" aria-hidden>✦</div>
@@ -167,8 +171,8 @@ export function Notch() {
         expands into a full transport — scrub, skip, like, all without leaving what you&rsquo;re doing.
       </p>
       <div className="notch-stage reveal">
-        <div className="notch-shot" data-tilt>
-          <Shot name="top_notch" alt="Rift Dynamic Island expanded with full transport controls" />
+        <div className="artboard-img">
+          <Shot name="top_notch" alt="Rift Music App Dynamic Island expanded with full transport controls" />
         </div>
       </div>
       <p className="notch-cap reveal">The island lives in the notch when you have one, and tucks away when you don&rsquo;t.</p>
@@ -190,7 +194,7 @@ export function Native() {
           <h2 className="serif">It behaves like a Mac app because it is one.</h2>
         </div>
         <div className="reveal">
-          <p className="lede" style={{ marginTop: 0 }}>Swift and SwiftUI throughout, with Liquid Glass materials and system integration wherever it counts.</p>
+          <p className="lede" style={{ marginTop: 0 }}>Swift and SwiftUI throughout, with system integration wherever it counts — Liquid Glass materials on macOS 26 Tahoe.</p>
           <div className="native-list">{wins.map((w) => <span key={w}>{w}</span>)}</div>
         </div>
       </div>
@@ -244,7 +248,7 @@ export function Install() {
           <a className="keycap" data-release-link href={RELEASE}><Download /> Download for macOS <span className="release-version" style={{ opacity: .7 }}>{REL_VERSION}</span></a>
           <a className="ghost-pill" href={REPO} target="_blank" rel="noreferrer">Build from source <span>→</span></a>
         </div>
-        <p className="req">Requires macOS 26 Tahoe · Streaming uses yt-dlp under the hood.</p>
+        <p className="req">Requires macOS 14 Sonoma+ (Liquid Glass on macOS 26 Tahoe) · Streaming uses yt-dlp under the hood.</p>
       </div>
     </section>
   );
@@ -256,7 +260,7 @@ export function Support() {
     <section className="rail chorus" aria-label="Open source">
       <div className="support-card reveal">
         <p className="eyebrow accent">Built in the open</p>
-        <h2 className="serif">Free. Open source. Built for people who miss real Mac apps.</h2>
+        <h2 className="serif">Free. Open source. Built for people who love Mac apps.</h2>
         <StarButton />
         <p className="credits">
           Protocol &amp; design references —{" "}

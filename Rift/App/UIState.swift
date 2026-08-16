@@ -11,4 +11,8 @@ import Foundation
 final class UIState: ObservableObject {
     @Published var showQueue = false
     @Published var showFullPlayer = false
+    /// First-launch onboarding is covering the window. The floating player
+    /// panel is a separate NSWindow, so it would otherwise sit on top of the
+    /// welcome flow — a restored (paused) track is enough to summon it.
+    @Published var onboarding = false
 }

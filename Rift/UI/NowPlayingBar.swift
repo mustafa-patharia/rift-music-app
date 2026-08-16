@@ -30,7 +30,10 @@ struct NowPlayingBar: View {
             let w = geo.size.width
             // Breakpoints (pill content width). Each element appears above its width.
             // Volume control removed (owner's call) — media keys + Settings cover it.
-            let showQueueIcon = w >= 620
+            // 320, not 620: the elapsed/total label used to sit in this row next
+            // to the heart (~67pt incl. spacing) and now lives under the scrubber,
+            // so the queue icon fits at a correspondingly narrower pill.
+            let showQueueIcon = w >= 320
             let showExtras    = w >= 470   // shuffle + repeat
             let showTime      = w >= 400
             let showSkip      = w >= 340   // prev / next
@@ -48,19 +51,19 @@ struct NowPlayingBar: View {
     private func pill(w: CGFloat, showQueueIcon: Bool,
                       showExtras: Bool, showTime: Bool, showSkip: Bool,
                       showName: Bool, showPoster: Bool) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             HStack(spacing: 14) {
                 left(showPoster: showPoster, showName: showName)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 transport(showExtras: showExtras, showSkip: showSkip)
-                right(showTime: showTime, showQueueIcon: showQueueIcon)
+                right(showQueueIcon: showQueueIcon)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            scrubber
+            scrubber(showTime: showTime)
         }
         .padding(.horizontal, 18).padding(.vertical, 12)
         .frame(width: w, height: pillHeight)
-        .glassEffect(in: .rect(cornerRadius: 26))
+        .liquidGlass(in: .rect(cornerRadius: 26))
         .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(.white.opacity(0.12)))
         .shadow(color: .black.opacity(0.3), radius: 20, y: 8)
     }
@@ -113,18 +116,15 @@ struct NowPlayingBar: View {
         .fixedSize()
     }
 
-    // MARK: right — like, time, queue
-    private func right(showTime: Bool, showQueueIcon: Bool) -> some View {
+    // MARK: right — like, queue
+    // Elapsed/duration used to live here as one "1:17 / 4:01" label; it now sits
+    // under the scrubber, split to the two ends (see `scrubber`).
+    private func right(showQueueIcon: Bool) -> some View {
         HStack(spacing: 12) {
             if let t = player.track {
                 iconButton(likes.isLiked(t.id) ? "heart.fill" : "heart",
                            active: likes.isLiked(t.id), activeColor: .red) { likes.toggle(t) }
                     .help(likes.isLiked(t.id) ? "Remove from Liked" : "Like")
-            }
-            if showTime {
-                Text("\(fmt(scrubbing ? scrubValue : player.currentTime)) / \(fmt(player.duration))")
-                    .font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
-                    .fixedSize()
             }
             if showQueueIcon {
                 iconButton("sidebar.right", active: showQueue) {
@@ -134,18 +134,31 @@ struct NowPlayingBar: View {
         }
     }
 
-    private var scrubber: some View {
+    private func scrubber(showTime: Bool) -> some View {
         let dur = max(player.duration, 0.01)
-        return Slider(value: $scrubValue, in: 0...dur) { editing in
-            scrubbing = editing
-            if !editing { player.seek(to: scrubValue) }
+        return VStack(spacing: 2) {
+            Slider(value: $scrubValue, in: 0...dur) { editing in
+                scrubbing = editing
+                if !editing { player.seek(to: scrubValue) }
+            }
+            .tint(.riftAccent)
+            // onAppear too: a restored (resume-on-launch) session sets currentTime
+            // BEFORE this view exists, so onChange alone leaves the knob at 0.
+            .onAppear { scrubValue = min(player.currentTime, dur) }
+            .onChange(of: player.currentTime) { _, t in if !scrubbing { scrubValue = min(t, dur) } }
+            .onChange(of: player.track?.id) { _, _ in scrubValue = 0 }
+
+            // Elapsed left, total right — same layout as the full player.
+            if showTime {
+                HStack(spacing: 0) {
+                    Text(fmt(scrubbing ? scrubValue : player.currentTime))
+                    Spacer(minLength: 8)
+                    Text(fmt(player.duration))
+                }
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(.secondary)
+            }
         }
-        .controlSize(.mini)
-        // onAppear too: a restored (resume-on-launch) session sets currentTime
-        // BEFORE this view exists, so onChange alone leaves the knob at 0.
-        .onAppear { scrubValue = min(player.currentTime, dur) }
-        .onChange(of: player.currentTime) { _, t in if !scrubbing { scrubValue = min(t, dur) } }
-        .onChange(of: player.track?.id) { _, _ in scrubValue = 0 }
     }
 
     private func iconButton(_ name: String, size: CGFloat = 14, active: Bool = false,
@@ -186,4 +199,44 @@ struct NowPlayingBar: View {
         return String(format: "%d:%02d", s / 60, s % 60)
     }
 }
+
+// MARK: - Preview
+#if DEBUG
+import Combine
+
+/// Stub source so the canvas can show a mid-track playing state — the
+/// controller's track/time/duration are `private(set)` and only move when a
+/// PlaybackSource publishes.
+@MainActor
+private final class PreviewSource: PlaybackSource {
+    let stateSubject = CurrentValueSubject<PlaybackState, Never>(.playing)
+    let timeSubject = CurrentValueSubject<TimeInterval, Never>(77)
+    let durationSubject = CurrentValueSubject<TimeInterval, Never>(212)
+    var state: AnyPublisher<PlaybackState, Never> { stateSubject.eraseToAnyPublisher() }
+    var currentTime: AnyPublisher<TimeInterval, Never> { timeSubject.eraseToAnyPublisher() }
+    var duration: AnyPublisher<TimeInterval, Never> { durationSubject.eraseToAnyPublisher() }
+    func load(_ track: PlayableTrack) {}
+    func play() { stateSubject.send(.playing) }
+    func pause() { stateSubject.send(.paused) }
+    func seek(to seconds: TimeInterval) { timeSubject.send(seconds) }
+    func setVolume(_ volume: Double) {}
+}
+
+#Preview("NowPlayingBar") {
+    let source = PreviewSource()
+    let player = PlayerController(source: source)
+    player.play(PlayableTrack(id: "preview", title: "Midnight Rift",
+                              artist: "The Placeholders", artworkURL: nil, duration: 212))
+    source.durationSubject.send(212)
+    source.timeSubject.send(77)
+    source.stateSubject.send(.playing)
+
+    return NowPlayingBar(showQueue: .constant(false))
+        .frame(width: 680, height: 140)
+        .padding(24)
+        .background(.black)
+        .environmentObject(player)
+        .environmentObject(UIState())
+}
+#endif
 

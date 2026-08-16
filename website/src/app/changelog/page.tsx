@@ -3,8 +3,8 @@ import { Nav, Scrubber, Footer } from "@/components/Chrome";
 import { CHANGELOG } from "@/lib/changelog";
 
 export const metadata: Metadata = {
-  title: "Changelog — Rift",
-  description: "What's new in Rift, the native Mac YouTube Music client.",
+  title: "Changelog — Rift Music App",
+  description: "What's new in Rift Music App, the native Mac YouTube Music client.",
   alternates: { canonical: "/changelog" },
 };
 
@@ -23,8 +23,8 @@ export default function ChangelogPage() {
       <main>
         <section className="rail chorus" style={{ paddingTop: 140 }}>
           <p className="eyebrow accent">Changelog</p>
-          <h1 className="serif" style={{ fontSize: "clamp(2.6rem,6vw,4.4rem)" }}>What&rsquo;s new in Rift.</h1>
-          <p className="lede">Every release, in the open. Rift is GPL-3.0 and in active development.</p>
+          <h1 className="serif" style={{ fontSize: "clamp(2.6rem,6vw,4.4rem)" }}>What&rsquo;s new in Rift Music App.</h1>
+          <p className="lede">Every release, in the open. Rift Music App is GPL-3.0 and in active development.</p>
 
           <ol className="changelog">
             {CHANGELOG.map((rel) => (

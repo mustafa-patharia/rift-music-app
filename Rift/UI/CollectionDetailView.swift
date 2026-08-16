@@ -38,7 +38,8 @@ struct CollectionDetailView: View {
             .padding(.bottom)
         }
         .scrollContentBackground(.hidden)
-        .navigationTitle(card.title)
+        // No .navigationTitle — it only reserves a toolbar row, misaligning
+        // the custom back button against QueueRail's header.
         .navigationBarBackButtonHidden(true)   // custom back floats on the hero
         .task { await load() }
     }
@@ -105,7 +106,7 @@ struct CollectionDetailView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 34, height: 34)
-                    .glassEffect(.regular.interactive(), in: .circle)
+                    .liquidGlass(true, in: .circle)
                     .overlay(Circle().strokeBorder(.white.opacity(0.15)))
                     .contentShape(.circle)
             }
