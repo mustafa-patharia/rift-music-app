@@ -35,9 +35,8 @@ Applications and sign in — or don't. It works either way.
   weekday. Computed locally, stored locally, shown to nobody.
 - **Radio and autoplay that keep going**, and a queue that survives quitting the
   app.
-- **Liquid Glass on macOS 26 Tahoe**, a material-blur fallback on Sonoma and
-  Sequoia, and display settings for Macs without a notch. One app, no
-  second-class Macs.
+- **Runs on every Mac from Sonoma up**, notch or no notch — it adopts whatever
+  material the system provides. One app, no second-class Macs.
 - **A first-run onboarding flow** that takes about fifteen seconds.
 
 [1.0.0]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.0

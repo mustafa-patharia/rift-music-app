@@ -23,7 +23,7 @@
 
 **Rift Music App is a pure player.** Sign in with your Google account and your whole YouTube
 Music world — playlists, likes, recommendations, two-way sync — flows into a native
-SwiftUI app with a Dynamic Island in your notch and Liquid Glass on macOS 26 Tahoe.
+SwiftUI app with a Dynamic Island in your notch.
 No account required for anonymous mode.
 
 One library. One queue. One beautiful player. And **more interesting things to come.**
@@ -72,9 +72,7 @@ One library. One queue. One beautiful player. And **more interesting things to c
 ## 🚀 Get Rift Music App
 
 > **v1.0.0** — the first stable release.
-> Requires macOS 14 Sonoma or later. Liquid Glass kicks in automatically on
-> macOS 26 Tahoe; older Macs get a material-blur fallback. Streaming uses
-> `yt-dlp` under the hood.
+> Requires macOS 14 Sonoma or later. Streaming uses `yt-dlp` under the hood.
 
 **Download** — grab the latest from **[Releases](../../releases/latest)**, drag to Applications, done.
 

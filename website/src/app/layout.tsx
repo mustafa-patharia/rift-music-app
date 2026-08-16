@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://rift-music-app.vercel.app"),
   title: "Rift Music App — the Mac-native YouTube Music client",
   description:
-    "Rift Music App is a beautiful, fully native macOS YouTube Music client. A Dynamic Island for your music, Liquid Glass on macOS 26 Tahoe, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
+    "Rift Music App is a beautiful, fully native macOS YouTube Music client. A Dynamic Island for your music, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
   icons: {
     icon: [
       { url: asset("/brand/favicon-32.png"), sizes: "32x32", type: "image/png" },
