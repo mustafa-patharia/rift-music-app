@@ -52,7 +52,7 @@ function WaveStrip({ bars = 46 }: { bars?: number }) {
 export function Hero() {
   return (
     <header className="hero" id="top">
-      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v0.0.2 is active</a>
+      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.0.0 is active</a>
       <h1 className="reveal">A player for <span className="accent-word">all</span><br /> your music.</h1>
       <p className="hero-sub reveal">
         A native Mac YouTube Music client in SwiftUI — a Dynamic Island for your music,
