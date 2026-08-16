@@ -9,7 +9,7 @@
 ![Swift](https://img.shields.io/badge/Swift_6-SwiftUI-ff6b4a?style=flat-square&logo=swift&logoColor=white)
 ![YouTube Music](https://img.shields.io/badge/YouTube_Music-client-ffb347?style=flat-square&logo=youtubemusic&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPL--3.0-3a3a3a?style=flat-square)
-![Status](https://img.shields.io/badge/status-beta_testing-ff2f3a?style=flat-square)
+![Status](https://img.shields.io/badge/version-1.0.0-ff2f3a?style=flat-square)
 
 ### A native Mac **YouTube Music** client — a Dynamic Island, private by default.
 
@@ -71,7 +71,7 @@ One library. One queue. One beautiful player. And **more interesting things to c
 
 ## 🚀 Get Rift Music App
 
-> **Beta testing** — expect rough edges while we head to 1.0.
+> **v1.0.0** — the first stable release.
 > Requires macOS 14 Sonoma or later. Liquid Glass kicks in automatically on
 > macOS 26 Tahoe; older Macs get a material-blur fallback. Streaming uses
 > `yt-dlp` under the hood.

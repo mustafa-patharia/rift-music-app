@@ -20,8 +20,10 @@ RW_DMG="build/${APP_NAME}-rw.dmg"
 FINAL_DMG="build/${APP_NAME}.dmg"
 
 echo "▸ building Release…"
+set -o pipefail
 xcodebuild -project Rift.xcodeproj -scheme Rift \
-  -configuration Release -derivedDataPath "$DERIVED" build | grep -E "error:|BUILD" || true
+  -configuration Release -derivedDataPath "$DERIVED" build | grep -E "error:|BUILD" \
+  || { echo "✗ xcodebuild failed"; exit 1; }
 
 APP_PATH=$(ls -td "$DERIVED"/Build/Products/Release/*.app | head -1)
 [ -d "$APP_PATH" ] || { echo "✗ no .app produced"; exit 1; }
