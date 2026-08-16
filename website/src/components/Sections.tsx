@@ -64,11 +64,11 @@ export function Hero() {
       </div>
       <p className="install-caption reveal">open source · GPL-3.0 · built in SwiftUI</p>
 
-      <div className="hero-artwork">
+      {/* <div className="hero-artwork">
         <RiftWindow>
           <Shot name="full_screen_player_screen" alt="Rift Music App full-screen player playing Tujh Mein Rab Dikhta Hai" priority />
         </RiftWindow>
-      </div>
+      </div> */}
 
       <a className="ph-badge" href={REPO} target="_blank" rel="noreferrer" aria-label="Open source on GitHub">
         <Star />
@@ -146,9 +146,9 @@ export function Features() {
         </article>
         <article className="cell span6 invert reveal">
           <div className="feat-copy">
-          <h3 className="serif">Never stops playing.</h3>
-          <p>Queue runs out? Rift Music App keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
-        </div>
+            <h3 className="serif">Never stops playing.</h3>
+            <p>Queue runs out? Rift Music App keeps going with recommendations seeded by what you actually play — and resumes where you left off across launches.</p>
+          </div>
         </article>
         <article className="cell span6 reveal">
           <div className="motif sparkle" aria-hidden>✦</div>
