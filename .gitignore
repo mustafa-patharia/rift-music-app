@@ -37,3 +37,5 @@ Rift/Resources/yt-dlp.zip
 
 # Local secrets — never commit
 .env
+
+.codegraph/
