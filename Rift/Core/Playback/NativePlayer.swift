@@ -107,7 +107,7 @@ final class NativePlayer: NSObject, PlaybackSource {
                     r = cached
                     Log.player.info("▶︎ \(track.title, privacy: .public) — fast (stream cache, \(Log.ms(since: t0))ms)")
                 } else {
-                    r = try await Self.resolveWithRetry(track.id)
+                    r = try await StreamResolver.resolveAudio(videoId: track.id)
                     await StreamCache.shared.put(track.id, r)
                     Log.player.info("▶︎ \(track.title, privacy: .public) — cold (resolved by yt-dlp, \(Log.ms(since: t0))ms)")
                 }
@@ -121,20 +121,6 @@ final class NativePlayer: NSObject, PlaybackSource {
                 if Task.isCancelled { return }
                 self.stateSubject.send(.error(error.localizedDescription))
             }
-        }
-    }
-
-    /// yt-dlp resolve with one retry — the extractor occasionally 500s transiently.
-    private static func resolveWithRetry(_ videoId: String) async throws -> StreamResolver.Resolved {
-        do {
-            return try await StreamResolver.resolveAudio(videoId: videoId)
-        } catch {
-            // Transient 500, a cipher change, or the pinned android_vr client going
-            // away — pull the latest yt-dlp (throttled) and retry with its full
-            // multi-client default (slower, but resilient).
-            await YtDlpManager.shared.update()
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            return try await StreamResolver.resolveAudio(videoId: videoId, fastClient: false)
         }
     }
 
