@@ -73,7 +73,6 @@ struct GoogleSignInView: NSViewRepresentable {
             return auth
         }
 
-
         // Use the same persistent data store as the sign-in webview so the
         // signinURL navigation mutates the shared cookie session.
         let cfg = WKWebViewConfiguration()
@@ -99,27 +98,22 @@ struct GoogleSignInView: NSViewRepresentable {
         // be emitted slightly after didFinish; poll briefly.
         var verified = false
         for attempt in 0 ..< 5 {
-            if let dataSyncId = try? await readDataSyncId(from: webView) {
-                if dataSyncIdMatches(dataSyncId, expectedBrandId: account.brandId) {
-                    verified = true
-                    break
-                }
-            } else {
+            if let dataSyncId = try? await readDataSyncId(from: webView),
+               dataSyncIdMatches(dataSyncId, expectedBrandId: account.brandId) {
+                verified = true
+                break
             }
             if attempt < 4 {
                 try await Task.sleep(for: .milliseconds(400))
             }
         }
-
-        if !verified {
-        }
+        // Unverified means the session is still on whichever identity was active
+        // before this call — surfacing success here would silently leave the user
+        // on the wrong account while the UI claims they switched.
+        guard verified else { throw SessionSwitchError.verificationFailed }
 
         // Re-capture cookies from the shared data store.
-        let result = try await captureAuth(from: cfg.websiteDataStore)
-        // Compare original vs re-captured auth to see if cookies actually changed.
-        let originalCookieShort = String(auth.cookie.hash)
-        let newCookieShort = String(result.cookie.hash)
-        return result
+        return try await captureAuth(from: cfg.websiteDataStore)
     }
 
     /// Reads `ytcfg.DATASYNC_ID` from a loaded WebView.
@@ -284,6 +278,10 @@ enum SessionSwitchError: LocalizedError {
     case navigationFailed(underlying: String)
     /// The switch did not complete within the allotted time.
     case timedOut
+    /// The navigation completed but ytcfg.DATASYNC_ID never reflected the
+    /// requested identity — the session is still on whichever account was
+    /// active before the switch.
+    case verificationFailed
 
     var errorDescription: String? {
         switch self {
@@ -291,6 +289,8 @@ enum SessionSwitchError: LocalizedError {
             "Failed to load the account switch page."
         case .timedOut:
             "Switching accounts timed out. Please try again."
+        case .verificationFailed:
+            "Account switch didn't take effect. Please try again."
         }
     }
 }
