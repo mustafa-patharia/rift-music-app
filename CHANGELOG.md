@@ -7,18 +7,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions follow
 
 ## [1.0.0] — 2026-08-16
 
+### Rift 1.0 — the YouTube Music app the Mac never had.
+
+For years the answer to "how do I play YouTube Music on my Mac?" was a browser
+tab. Rift 1.0 is the other answer: a real Mac app, with your whole library, a
+player that lives in your notch, and not one line of telemetry. Drag it to
+Applications and sign in — or don't. It works either way.
+
 ### Added
-- Zero setup — the playback engine ships inside the app: no Homebrew, no Python,
-  no admin password, nothing to download on first launch.
-- Native browse — search, artists, albums, charts and playlists in SwiftUI.
-- Dynamic Island in the notch, plus a menu-bar player.
-- Offline downloads with instant-replay stream caching.
-- Gapless crossfade for smooth transitions between songs.
-- Synced lyrics with optional on-device AI (Apple Intelligence / Ollama) for
-  transliteration & translation, with multilingual support.
-- Listening stats — top songs, top artists, clocks by hour and weekday, stored
-  locally only.
-- YouTube Music sign-in — your playlists, likes, recommendations and two-way sync.
-- Radio / autoplay that keeps going, and resume-where-you-left-off across launches.
-- Onboarding flow, and a Liquid Glass fallback for Macs below macOS 26.
-- Display settings for non-notch Macs.
+
+- **Nothing to install but the app.** The playback engine ships inside it — no
+  Homebrew, no Python, no admin password. Music starts in about half a second on
+  a Mac that has never seen a developer tool.
+- **Your notch, put to work.** Album art and an equalizer at a glance, a full
+  transport on hover — the Dynamic Island the Mac was missing. Plus a menu-bar
+  player.
+- **Your whole YouTube Music world, natively.** Playlists, likes,
+  recommendations and two-way sync, in SwiftUI instead of a web view. Or stay
+  signed out entirely: anonymous browsing and playback just work.
+- **Native browse** — search, artists, albums, charts, moods and radio, all fast.
+- **Downloads that stay downloaded**, plus stream caching that makes a replay
+  instant.
+- **Lyrics that keep time**, and an optional on-device AI (Apple Intelligence or
+  Ollama) that transliterates and translates them — nothing leaves your Mac.
+- **Gapless crossfade** between tracks.
+- **Your listening, charted** — top songs, top artists, clocks by hour and
+  weekday. Computed locally, stored locally, shown to nobody.
+- **Radio and autoplay that keep going**, and a queue that survives quitting the
+  app.
+- **Runs on every Mac from Sonoma up**, notch or no notch — it adopts whatever
+  material the system provides. One app, no second-class Macs.
+- **A first-run onboarding flow** that takes about fifteen seconds.
+
+[1.0.0]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.0

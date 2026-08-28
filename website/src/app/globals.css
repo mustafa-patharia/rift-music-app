@@ -1770,6 +1770,18 @@ h3 {
   color: var(--ink-3);
 }
 
+.cl-headline {
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+
+.cl-blurb {
+  color: var(--ink-2);
+  max-width: 62ch;
+  margin: 0 0 26px;
+}
+
 .cl-section {
   margin-bottom: 18px;
 }

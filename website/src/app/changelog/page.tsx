@@ -37,6 +37,8 @@ export default function ChangelogPage() {
                   {rel.date && <time className="cl-date">{rel.date}</time>}
                 </div>
                 <div className="cl-body">
+                  {rel.headline && <h2 className="serif cl-headline">{rel.headline}</h2>}
+                  {rel.blurb && <p className="cl-blurb">{rel.blurb}</p>}
                   {rel.sections.map((sec) => (
                     <div className="cl-section" key={sec.label}>
                       <span className={`cl-tag cl-${sec.label.toLowerCase()}`}>{sec.label}</span>
