@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/). This file mirrors the on-site changelog at
 `/changelog`.
 
+## [1.0.1] — 2026-08-28
+
+### Fixed
+
+- **Playback failing after a few days idle.** YouTube tightened requirements on
+  the player client Rift's streaming engine defaulted to; the engine now checks
+  for an update on every launch instead of only after a failed play, and no
+  longer pins a client that YouTube (and the engine itself) had already moved
+  away from.
+
+### Added
+
+- **Brand account support at sign-in.** If your Google account manages a brand
+  channel, a chooser now appears after login so you can sign in as that channel
+  instead of your personal account.
+
 ## [1.0.0] — 2026-08-16
 
 ### Rift 1.0 — the YouTube Music app the Mac never had.
@@ -39,4 +55,5 @@ Applications and sign in — or don't. It works either way.
   material the system provides. One app, no second-class Macs.
 - **A first-run onboarding flow** that takes about fifteen seconds.
 
+[1.0.1]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.1
 [1.0.0]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.0

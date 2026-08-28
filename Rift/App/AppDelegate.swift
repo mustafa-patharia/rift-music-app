@@ -23,6 +23,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         s.mode.onChange = { [weak self] in self?.apply() }
         apply()
+
+        // YouTube's extraction requirements shift often (client/PO-token changes)
+        // and yt-dlp ships fixes fast — check for a newer copy on every launch
+        // instead of waiting for a play to fail first. Throttled inside update()
+        // so a quick relaunch doesn't redownload.
+        Task.detached { await YtDlpManager.shared.update() }
     }
 
     // The system crash report captures the NSException's name/reason (e.g. AppKit's

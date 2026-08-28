@@ -31,11 +31,11 @@ struct StreamResolver {
     /// Print URL, duration, and the HTTP headers yt-dlp would use. googlevideo
     /// CDN URLs 403 without the right User-Agent, so AVPlayer MUST send these —
     /// that's the "unknown error" when they're missing.
-    /// - fastClient: pin the `android_vr` player client + skip format checks. It's
-    ///   the client yt-dlp's default lands on anyway (has format 140, no PO token,
-    ///   no nsig), so pinning it drops a cold resolve ~5.3s → ~2.2s. If YouTube ever
-    ///   kills it, callers retry with `fastClient: false` (yt-dlp's multi-client default).
-    static func resolveAudio(videoId: String, fastClient: Bool = true) async throws -> Resolved {
+    /// Client selection is left to yt-dlp's own default (don't pin one — YouTube's
+    /// PO-token requirements shift which client works, and yt-dlp tracks that
+    /// upstream faster than we can; pinning one here previously locked us onto a
+    /// client yt-dlp itself had already dropped as broken).
+    static func resolveAudio(videoId: String) async throws -> Resolved {
         guard let cmd = await YtDlpManager.shared.command(), let exec = cmd.first
         else { throw StreamResolverError.binaryNotFound }
 
@@ -45,12 +45,6 @@ struct StreamResolver {
             "-f", "140/bestaudio[ext=m4a]/bestaudio",
             "--no-playlist", "--no-warnings",
         ]
-        if fastClient {
-            proc.arguments! += [
-                "--no-check-formats",
-                "--extractor-args", "youtube:player_client=android_vr",
-            ]
-        }
         proc.arguments! += [
             // Three lines: URL, duration (seconds), headers (JSON).
             "--print", "urls",
@@ -66,7 +60,7 @@ struct StreamResolver {
         try proc.run()
         proc.waitUntilExit()
         let took = Log.ms(since: t0)
-        Log.resolve.info("yt-dlp \(videoId, privacy: .public) → \(took)ms (\(fastClient ? "fast client" : "default clients", privacy: .public), \((cmd.last! as NSString).lastPathComponent, privacy: .public))")
+        Log.resolve.info("yt-dlp \(videoId, privacy: .public) → \(took)ms (\((cmd.last! as NSString).lastPathComponent, privacy: .public))")
 
         let outData = out.fileHandleForReading.readDataToEndOfFile()
         let errData = err.fileHandleForReading.readDataToEndOfFile()

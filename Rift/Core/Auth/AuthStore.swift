@@ -8,11 +8,12 @@
 import Foundation
 
 struct YTAuth: Codable, Equatable {
-    var cookie: String          // full "Cookie:" header value
-    var sapisid: String         // SAPISID / __Secure-3PAPISID, for SAPISIDHASH
-    var email: String? = nil    // display only, optional
-    var name: String? = nil     // account display name
-    var photo: String? = nil    // account avatar URL
+    var cookie: String            // full "Cookie:" header value
+    var sapisid: String           // SAPISID / __Secure-3PAPISID, for SAPISIDHASH
+    var email: String? = nil      // display only, optional
+    var name: String? = nil       // account display name
+    var photo: String? = nil      // account avatar URL
+    var brandId: String? = nil    // brand account ID for onBehalfOfUser; nil for primary
 }
 
 enum AuthStore {

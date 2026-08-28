@@ -134,15 +134,22 @@ struct ContentView: View {
         .onAppear { ui.onboarding = !hasOnboarded }
         .onChange(of: hasOnboarded) { _, done in ui.onboarding = !done }
         .sheet(isPresented: $auth.showingLogin) {
-            NavigationStack {
-                GoogleSignInView { auth.completed($0) }
-                    .frame(minWidth: 520, minHeight: 640)
-                    .navigationTitle("Sign in to YouTube Music")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { auth.showingLogin = false }
+            if auth.pendingAuth != nil {
+                // Account chooser — shown after Google login when multiple
+                // accounts (primary + brand) are available.
+                AccountSelectionView(auth: auth)
+            } else {
+                // Google sign-in webview.
+                NavigationStack {
+                    GoogleSignInView { auth.loginCaptured($0) }
+                        .frame(minWidth: 520, minHeight: 640)
+                        .navigationTitle("Sign in to YouTube Music")
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Cancel") { auth.showingLogin = false }
+                            }
                         }
-                    }
+                }
             }
         }
     }
