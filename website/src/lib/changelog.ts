@@ -11,9 +11,28 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.0.1",
+    date: "2026-08-28",
+    current: true,
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "Playback failing after a few days idle — YouTube tightened requirements on the player client Rift's streaming engine defaulted to. The engine now checks for an update on every launch instead of only after a failed play, and no longer pins a client that YouTube (and the engine itself) had already moved away from.",
+        ],
+      },
+      {
+        label: "Added",
+        items: [
+          "Brand account support at sign-in — if your Google account manages a brand channel, a chooser now appears after login so you can sign in as that channel instead of your personal account.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.0.0",
     date: "2026-08-16",
-    current: true,
+    current: false,
     headline: "Rift 1.0 — the YouTube Music app the Mac never had.",
     blurb:
       "For years the answer to “how do I play YouTube Music on my Mac?” was a browser tab. Rift 1.0 is the other answer: a real Mac app, with your whole library, a player that lives in your notch, and not one line of telemetry. Drag it to Applications and sign in — or don’t. It works either way.",
