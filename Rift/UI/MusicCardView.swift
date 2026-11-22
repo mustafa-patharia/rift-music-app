@@ -15,6 +15,7 @@ struct MusicCardView: View {
     @EnvironmentObject var player: PlayerController
     let card: MusicCard
     @State private var hover = false
+    @ObservedObject private var covers = CoverStore.shared
 
     var body: some View {
         Group {
@@ -35,6 +36,13 @@ struct MusicCardView: View {
                     }
             } else {
                 NavigationLink(value: card) { tile }.buttonStyle(.plain)
+                    .contextMenu {
+                        if card.kind == .playlist {
+                            Button { CoverStore.shared.editing = .init(id: card.id, title: card.title) } label: {
+                                Label("Customize Cover…", systemImage: "paintpalette")
+                            }
+                        }
+                    }
             }
         }
         .scaleEffect(hover ? 1.03 : 1)
@@ -45,7 +53,13 @@ struct MusicCardView: View {
     private var tile: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomTrailing) {
-                Artwork(url: card.artworkURL, size: 150, circle: card.kind == .artist)
+                Group {
+                    if card.kind == .playlist, let custom = covers.cover(for: card.id) {
+                        CustomCoverArt(cover: custom, title: card.title, size: 150)
+                    } else {
+                        Artwork(url: card.artworkURL, size: 150, circle: card.kind == .artist)
+                    }
+                }
                     .shadow(color: .black.opacity(hover ? 0.35 : 0.18), radius: hover ? 14 : 6, y: 5)
                 if card.kind == .song, player.track?.id == card.id, player.isPlaying {
                     // This poster is what's playing — live EQ badge.

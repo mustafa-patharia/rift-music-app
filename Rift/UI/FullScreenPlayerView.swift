@@ -12,17 +12,22 @@ struct FullScreenPlayerView: View {
 
     @ObservedObject private var likes = LikeStore.shared
     @ObservedObject private var ai = AIStore.shared
+    @AppStorage(NowPlayingStyle.storageKey) private var style: NowPlayingStyle = .artwork
     @State private var scrubValue: Double = 0
     @State private var scrubbing = false
     @State private var showLyrics = false
     @State private var lyrics: String?
+    /// Time-stamped lines (LRCLIB) — when present the panel follows playback.
+    @State private var synced: [LyricLine]?
     @State private var lyricsState: LyricsState = .idle
     // AI lyric views (local model via AI facade) — cached per track.
-    private enum LyricsDisplay { case original, romanized, english }
+    private enum LyricsDisplay: Equatable { case original, script(LyricScript) }
     @State private var display: LyricsDisplay = .original
-    @State private var romanized: String?
-    @State private var english: String?
+    /// Sing-along rewrites, line-for-line with `sourceLines`, per script.
+    @State private var scripted: [LyricScript: [String]] = [:]
     @State private var aiWorking = false
+    /// Last AI failure, shown under the lyrics header until the next try.
+    @State private var aiError: String?
     /// Pointer offset from the poster's centre, -0.5…0.5 per axis. Drives the
     /// parallax tilt; .zero is flat.
     @State private var tilt: CGSize = .zero
@@ -43,13 +48,22 @@ struct FullScreenPlayerView: View {
             GeometryReader { geo in
                 let tight = geo.size.width < 720
                 let column = min(460, geo.size.width * 0.44)
-                HStack(spacing: tight ? 20 : 40) {
-                    nowPlaying
-                        .frame(maxWidth: showLyrics ? column : .infinity)
-                    if showLyrics { lyricsPanel.frame(maxWidth: column) }
+                // Side-by-side needs ~300pt for the transport row plus a readable
+                // lyrics column. Below that, lyrics take over the column (Apple
+                // Music's small-window layout) instead of overlapping the poster.
+                if showLyrics && geo.size.width < 680 {
+                    stackedLyrics
+                        .padding(.horizontal, 24)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    HStack(spacing: tight ? 20 : 40) {
+                        nowPlaying
+                            .frame(maxWidth: showLyrics ? column : .infinity)
+                        if showLyrics { lyricsPanel.frame(maxWidth: column) }
+                    }
+                    .padding(.horizontal, tight ? 24 : 60)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .padding(.horizontal, tight ? 24 : 60)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -122,6 +136,29 @@ struct FullScreenPlayerView: View {
         .contentShape(.circle)
     }
 
+    // Narrow layout: small art + title on top, lyrics fill, transport below.
+    private var stackedLyrics: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 14) {
+                Artwork(url: player.track?.artworkURL, size: 56)
+                    .clipShape(.rect(cornerRadius: 8))
+                    .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(player.track?.title ?? "—").font(.headline).lineLimit(1)
+                    Text(player.track?.artist ?? "").font(.subheadline)
+                        .foregroundStyle(.secondary).lineLimit(1)
+                }
+                .foregroundStyle(.white)
+                Spacer(minLength: 0)
+                lyricsAIMenu
+            }
+            .padding(.top, 16)
+            lyricsBody
+            scrubber
+            transport(roomy: false).padding(.bottom, 20)
+        }
+    }
+
     // MARK: now playing column
     private var nowPlaying: some View {
         // Poster is a share of the column, not a fixed 340pt: capped at 340 so
@@ -135,6 +172,10 @@ struct FullScreenPlayerView: View {
 
             VStack(spacing: roomy ? 28 : 16) {
                 Spacer(minLength: 0)
+                if style == .record {
+                    RecordPlayerView(url: player.track?.artworkURL, height: poster,
+                                     maxWidth: geo.size.width, isPlaying: player.isPlaying)
+                } else {
                 Artwork(url: player.track?.artworkURL, size: poster)
                     .clipShape(.rect(cornerRadius: 16))
                     .shadow(color: .black.opacity(0.5), radius: 30, y: 14)
@@ -157,6 +198,7 @@ struct FullScreenPlayerView: View {
                             tilt = .zero   // settle back to flat on exit
                         }
                     }
+                }
 
                 VStack(spacing: 6) {
                     Text(player.track?.title ?? "—")
@@ -231,102 +273,156 @@ struct FullScreenPlayerView: View {
                 Spacer()
                 lyricsAIMenu
             }
+            lyricsBody
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(.vertical, 40)
+    }
+
+    private var lyricsBody: some View {
             Group {
                 switch lyricsState {
                 case .loading: ProgressView().frame(maxWidth: .infinity, alignment: .center).padding(.top, 40)
                 case .none, .idle:
                     Text("No lyrics available").foregroundStyle(.secondary).padding(.top, 40)
                 case .loaded:
-                    if aiWorking {
-                        // Writing-Tools-style shimmer while the model generates.
-                        AISkeletonLines().padding(.top, 10)
-                    } else {
-                        ScrollView(showsIndicators: false) {
-                            Text(displayedLyrics)
-                                .font(.title3).foregroundStyle(.white.opacity(0.9))
-                                .lineSpacing(6).frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.bottom, 40)
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let aiError {
+                            Label(aiError, systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption).foregroundStyle(.orange)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        if aiWorking {
+                            // Writing-Tools-style shimmer while the model generates.
+                            AISkeletonLines().padding(.top, 10)
+                        } else if let lines = displayedSynced {
+                            SyncedLyricsView(lines: lines, time: player.currentTime) { player.seek(to: $0) }
+                        } else {
+                            ScrollView(showsIndicators: false) {
+                                Text(displayedLyrics)
+                                    .font(.title3).foregroundStyle(.white.opacity(0.9))
+                                    .lineSpacing(6).frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.bottom, 40)
+                            }
                         }
                     }
                 }
             }
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
-        .padding(.vertical, 40)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var displayedLyrics: String {
         switch display {
         case .original:  return lyrics ?? ""
-        case .romanized: return romanized ?? lyrics ?? ""
-        case .english:   return english ?? lyrics ?? ""
+        case .script(let s): return scripted[s]?.joined(separator: "\n") ?? lyrics ?? ""
         }
     }
 
-    // Language menu — AI lyric views (all on the local model, per Settings):
-    // romanization for any non-Latin script (Hindi, Korean, Chinese, Russian,
-    // Malayalam, …), English translation for any non-English lyrics. Hidden
-    // until an AI provider is enabled in Settings.
+    /// The lines a sing-along rewrite maps onto: synced lines when timed, so
+    /// the rewrite keeps every timestamp; otherwise the plain text's lines.
+    private var sourceLines: [String] {
+        synced?.map(\.text) ?? (lyrics ?? "").components(separatedBy: "\n")
+    }
+
+    /// Synced lines in the current view's script; nil → show static text.
+    private var displayedSynced: [LyricLine]? {
+        guard let lines = synced else { return nil }
+        switch display {
+        case .original: return lines
+        case .script(let s): return aligned(scripted[s], to: lines)
+        }
+    }
+
+    private func aligned(_ texts: [String]?, to lines: [LyricLine]) -> [LyricLine]? {
+        guard let texts, texts.count == lines.count else { return nil }
+        return zip(lines, texts).map { LyricLine(time: $0.time, text: $1) }
+    }
+
+    // AI lyric controls (local model, per Settings), hidden until a provider
+    // is enabled:
+    //  • mic — "Sing along": the same words rewritten in a script the
+    //    listener reads (phonetic, never translated)
     @ViewBuilder private var lyricsAIMenu: some View {
-        if lyricsState == .loaded, let text = lyrics, ai.isReady,
-           AI.hasNonLatinScript(text) || AI.isNonEnglish(text) {
+        if lyricsState == .loaded, let text = lyrics, ai.isReady {
+            let source = LyricScript.dominant(in: text)
+            let singing: Bool = { if case .script = display { return true }; return false }()
             Menu {
-                Button { display = .original } label: {
-                    display == .original ? Label("Original", systemImage: "checkmark") : Label("Original", systemImage: "")
-                }
-                if AI.hasNonLatinScript(text) {
-                    Button { switchTo(.romanized, text) } label: {
-                        display == .romanized ? Label("Romanized", systemImage: "checkmark") : Label("Romanized", systemImage: "")
-                    }
-                }
-                if AI.isNonEnglish(text) {
-                    Button { switchTo(.english, text) } label: {
-                        display == .english ? Label("English translation", systemImage: "checkmark") : Label("English translation", systemImage: "")
+                Section("Sing along in") {
+                    Button { display = .original } label: { check("Original script", !singing) }
+                    ForEach(LyricScript.allCases.filter { !$0.isSource(of: source) }) { s in
+                        Button { switchTo(.script(s)) } label: { check(s.label, display == .script(s)) }
                     }
                 }
             } label: {
-                // Icon never disappears — it pulses while the model works.
-                Image(systemName: "translate")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(aiWorking || display != .original
-                                     ? AnyShapeStyle(.tint) : AnyShapeStyle(.white))
-                    .symbolEffect(.pulse, options: .repeating, isActive: aiWorking)
-                    .frame(width: 34, height: 26)
-                    .background(.ultraThinMaterial, in: .capsule)
-                    .contentShape(.capsule)
+                aiCapsule("music.mic", active: singing)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            // borderlessButton drops the label's background — redraw it here.
+            .frame(width: 34, height: 26)
+            .background(.ultraThinMaterial, in: .capsule)
+            .help("Sing along — same words in a script you can read")
+            .accessibilityLabel("Sing along script")
+
             .disabled(aiWorking)
-            .help("Lyrics language")
         }
     }
 
-    private func switchTo(_ target: LyricsDisplay, _ text: String) {
+    // Icon never disappears — it pulses while the model works.
+    private func aiCapsule(_ symbol: String, active: Bool) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(active ? AnyShapeStyle(.tint) : AnyShapeStyle(.white))
+            .symbolEffect(.pulse, options: .repeating, isActive: aiWorking)
+            .frame(width: 34, height: 26)
+            .background(.ultraThinMaterial, in: .capsule)
+            .contentShape(.capsule)
+    }
+
+    private func check(_ title: String, _ on: Bool) -> Label<Text, Image> {
+        Label(title, systemImage: on ? "checkmark" : "")
+    }
+
+    private func switchTo(_ target: LyricsDisplay) {
         // Cached → instant flip; otherwise run the model once and cache.
-        if (target == .romanized && romanized != nil) || (target == .english && english != nil) {
-            display = target; return
+        let cached: Bool
+        switch target {
+        case .script(let s): cached = scripted[s] != nil
+        case .original: cached = true
         }
-        aiWorking = true
+        if cached { display = target; return }
+        guard let trackId = player.track?.id else { return }
+        let lines = sourceLines
+        aiWorking = true; aiError = nil
         Task {
             defer { aiWorking = false }
-            switch target {
-            case .romanized:
-                if let r = try? await AI.romanize(text) { romanized = r; display = .romanized }
-            case .english:
-                if let r = try? await AI.translate(text) { english = r; display = .english }
-            case .original: break
+            do {
+                switch target {
+                case .script(let s):
+                    let r = try await AI.transliterate(lines, into: s)
+                    guard player.track?.id == trackId else { return }
+                    scripted[s] = r
+                case .original: break
+                }
+                display = target
+            } catch {
+                guard player.track?.id == trackId else { return }
+                aiError = "Couldn't reach the AI model — \(error.localizedDescription)"
             }
         }
     }
 
     private func loadLyrics() async {
-        guard let id = player.track?.id, URL(string: id)?.isFileURL != true else {
-            lyricsState = .none; lyrics = nil; romanized = nil; english = nil; display = .original; return
+        guard let track = player.track, URL(string: track.id)?.isFileURL != true else {
+            lyricsState = .none; lyrics = nil; synced = nil; scripted = [:]; aiError = nil; display = .original; return
         }
-        romanized = nil; english = nil; display = .original
-        lyricsState = .loading; lyrics = nil
-        let text = try? await InnerTubeClient.lyrics(videoId: id)
-        if let text, !text.isEmpty { lyrics = text; lyricsState = .loaded }
+        scripted = [:]; aiError = nil; display = .original
+        lyricsState = .loading; lyrics = nil; synced = nil
+        // Every source in order (YTM timed → LRCLIB → official audio → plain).
+        let found = await SyncedLyrics.resolve(track,
+            duration: track.duration ?? (player.duration > 0 ? player.duration : nil))
+        guard player.track?.id == track.id else { return }   // skipped mid-load
+        synced = found?.lines
+        if let t = found?.text, !t.isEmpty { lyrics = t; lyricsState = .loaded }
         else {
             lyricsState = .none
             // Panel was open (previous track / clicked mid-load) but this song
@@ -393,5 +489,60 @@ private struct AISkeletonLines: View {
                 }
             }
         }
+    }
+}
+
+
+/// Line-synced lyrics: the sung line is large and bright, neighbours shrink
+/// and fade with distance, and the view keeps the active line in the upper
+/// third as the song plays. Click a line to jump there.
+private struct SyncedLyricsView: View {
+    let lines: [LyricLine]
+    let time: TimeInterval
+    let seek: (TimeInterval) -> Void
+
+    // Lyrics stamps mark the line START; nudging forward feels on-beat
+    // given the web player's time-update latency.
+    private var active: Int? { SyncedLyrics.activeIndex(in: lines, at: time + 0.25) }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
+                        row(line, distance: active.map { abs(i - $0) } ?? 99, isActive: i == active)
+                            .id(i)
+                            .onTapGesture { seek(line.time) }
+                    }
+                }
+                .padding(.vertical, 120)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            // Soft fade at the top and bottom edges.
+            .mask(LinearGradient(stops: [.init(color: .clear, location: 0),
+                                         .init(color: .black, location: 0.12),
+                                         .init(color: .black, location: 0.85),
+                                         .init(color: .clear, location: 1)],
+                                 startPoint: .top, endPoint: .bottom))
+            .onChange(of: active) { _, i in
+                guard let i else { return }
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                    proxy.scrollTo(i, anchor: UnitPoint(x: 0, y: 0.35))
+                }
+            }
+            .onAppear { if let i = active { proxy.scrollTo(i, anchor: UnitPoint(x: 0, y: 0.35)) } }
+        }
+    }
+
+    private func row(_ line: LyricLine, distance: Int, isActive: Bool) -> some View {
+        let text = line.text.isEmpty ? "♪" : line.text
+        return Text(text)
+            .font(.system(size: isActive ? 26 : 19, weight: isActive ? .bold : .semibold))
+            .foregroundStyle(.white.opacity(isActive ? 1 : max(0.18, 0.5 - Double(distance) * 0.08)))
+            .blur(radius: isActive ? 0 : min(Double(distance) * 0.35, 1.5))
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isActive)
     }
 }

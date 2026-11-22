@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 // Sidebar — glass navigation rail: grouped sections with a sliding selection
-// pill (matchedGeometry) and a profile chip that opens sign-in. No wordmark,
-// no collapse — a fixed 189pt rail (owner's call). Structure borrows from the
+// pill (matchedGeometry) and a profile chip that opens sign-in. No wordmark; a
+// fixed 189pt rail that collapses via the titlebar button or ⌃⌘S. Structure borrows from the
 // reference dashboards (grouped Menu / Library nav).
 
 import SwiftUI
 
 enum Panel: String, CaseIterable, Identifiable {
-    case home = "Home", search = "Search", library = "Library", stats = "Stats",
-         settings = "Settings"
+    case home = "Home", search = "Search", library = "Library", together = "Together",
+         stats = "Stats", settings = "Settings"
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .home:     return "house.fill"
         case .search:   return "magnifyingglass"
         case .library:  return "square.stack.fill"
+        case .together: return "shareplay"
         case .stats:    return "chart.bar.fill"
         case .settings: return "gearshape"
         }

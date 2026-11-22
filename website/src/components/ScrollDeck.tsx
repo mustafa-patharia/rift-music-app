@@ -17,7 +17,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 const SHOTS = [
   { n: "home_screen", l: "Home", title: "Your whole library, home.", sub: "Featured playlists, recently played, and your top artists — the moment you open Rift Music App." },
   { n: "full_screen_player_screen", l: "Now Playing", title: "Now Playing, in full.", sub: "Full-window album art, a live scrubber, and transport." },
-  { n: "player_with_lyrics_screen", l: "Lyrics", title: "Lyrics that keep time.", sub: "Synced lyrics with optional on-device transliteration and translation — even non-Latin scripts." },
+  { n: "player_with_lyrics_screen", l: "Lyrics", title: "Lyrics that keep time.", sub: "Synced lyrics, and optional AI that rewrites them in a script you can read — so you can sing along." },
   { n: "artist_screen", l: "Artist", title: "Every artist, in depth.", sub: "Bio, monthly listeners, top songs, albums, and one-tap radio — all native." },
   { n: "search_screen", l: "Search", title: "Search all of YouTube Music.", sub: "Trending charts, your recents, and top artists — the full catalog, one field." },
   { n: "library_screen", l: "Library", title: "Your playlists, your way.", sub: "Liked Music, your playlists and downloads — local-first, synced when you sign in." },

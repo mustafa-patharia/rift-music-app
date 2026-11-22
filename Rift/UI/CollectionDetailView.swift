@@ -11,6 +11,7 @@ struct CollectionDetailView: View {
     @EnvironmentObject var player: PlayerController
     @Environment(\.dismiss) private var dismiss
     let card: MusicCard
+    @ObservedObject private var covers = CoverStore.shared
 
     @State private var tracks: [PlayableTrack] = []
     @State private var loading = false
@@ -55,10 +56,18 @@ struct CollectionDetailView: View {
     // MARK: hero — artwork banner, controls in glass on the poster
     private var hero: some View {
         ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: card.artworkURL) { img in
-                img.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle().fill(.quaternary)
+            Group {
+                if card.kind == .playlist, let custom = covers.cover(for: card.id) {
+                    // Title is already printed on the banner — keep it off the art.
+                    CustomCoverArt(cover: CustomCover(emoji: custom.emoji, palette: custom.palette),
+                                   size: 300, height: 300)
+                } else {
+                    AsyncImage(url: card.artworkURL) { img in
+                        img.resizable().aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle().fill(.quaternary)
+                    }
+                }
             }
             .frame(height: 300).frame(maxWidth: .infinity).clipped()
 

@@ -9,7 +9,7 @@
 ![Swift](https://img.shields.io/badge/Swift_6-SwiftUI-ff6b4a?style=flat-square&logo=swift&logoColor=white)
 ![YouTube Music](https://img.shields.io/badge/YouTube_Music-client-ffb347?style=flat-square&logo=youtubemusic&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPL--3.0-3a3a3a?style=flat-square)
-![Status](https://img.shields.io/badge/version-1.0.1-ff2f3a?style=flat-square)
+![Status](https://img.shields.io/badge/version-1.1.0-ff2f3a?style=flat-square)
 
 ### A native Mac **YouTube Music** client — a Dynamic Island, private by default.
 
@@ -38,7 +38,7 @@ One library. One queue. One beautiful player. And **more interesting things to c
     <td width="50%" align="center"><b>Now Playing</b><br><sub>Full-window art · live scrubber · transport</sub><br><br><img src="website/public/img/shots/full_screen_player_screen.png" alt="Rift Music App Now Playing" width="100%"></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><b>Lyrics</b><br><sub>Synced · on-device transliteration & translation</sub><br><br><img src="website/public/img/shots/player_with_lyrics_screen.png" alt="Rift Music App Lyrics" width="100%"></td>
+    <td width="50%" align="center"><b>Lyrics</b><br><sub>Synced · AI sing-along in any script</sub><br><br><img src="website/public/img/shots/player_with_lyrics_screen.png" alt="Rift Music App Lyrics" width="100%"></td>
     <td width="50%" align="center"><b>Artist</b><br><sub>Bio · monthly listeners · top songs · radio</sub><br><br><img src="website/public/img/shots/artist_screen.png" alt="Rift Music App Artist page" width="100%"></td>
   </tr>
   <tr>
@@ -61,9 +61,11 @@ One library. One queue. One beautiful player. And **more interesting things to c
 |---|---|
 | 🎧 **Full catalog, native UI** | Search, albums, artists, playlists, moods and charts — all SwiftUI. |
 | 🌟 **Real recommendations** | Home feed, radio & autoplay, *"More like…"* and *"Because you liked…"* seeded by what you actually play. |
-| 🏝 **A living notch** | A Dynamic Island for album art + equalizer; hover to a full transport. |
+| 🏝 **A living notch** | A Dynamic Island for album art + equalizer; hover to a full transport. No notch? Rift draws one. |
+| 👥 **Listen together** | Share a room code and friends anywhere hear what you play, in sync — end-to-end encrypted, no account. Or find Macs nearby. |
+| 🖥 **Desktop widget** | Now Playing on your desktop, with play/pause and skip. |
 | ⬇ **Offline, properly** | Download tracks and keep them; streams cache for instant replay. |
-| 🎤 **Lyrics + on-device AI** | Synced lyrics; optional local AI (Apple Intelligence / Ollama) transliterates & translates. |
+| 🎤 **Lyrics + AI sing-along** | Synced lyrics; optional AI (on-device Apple Intelligence, or your own API key) rewrites them in a script you can read — same words, so you can sing along. |
 | 📊 **Your listening, charted** | Top songs, top artists, listening clocks — computed and stored **locally only**. |
 | 🔒 **Private by default** | No telemetry, no analytics, no cloud middleman. Credentials live in the Keychain. |
 
@@ -71,7 +73,7 @@ One library. One queue. One beautiful player. And **more interesting things to c
 
 ## 🚀 Get Rift Music App
 
-> **v1.0.1** — bugfix release: playback reliability, brand account sign-in.
+> **v1.1.0** — listen together: rooms with friends anywhere, a desktop widget, a Dynamic Island on every Mac.
 > Requires macOS 14 Sonoma or later. Streaming uses `yt-dlp` under the hood.
 
 **Download** — grab the latest from **[Releases](../../releases/latest)**, drag to Applications, done.

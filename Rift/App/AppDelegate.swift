@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 // AppDelegate — owns the AppKit shells (notch panel + menu-bar item) and shows
-// or hides them per the display-mode setting. Notch is only shown when a
-// physical notch exists; a notch request on a non-notch Mac falls back to the
-// menu bar so playback controls are always reachable.
+// or hides them per the display-mode setting. Non-notch Macs get a virtual
+// notch (NotchDetector.island), so the mode picker decides on every Mac.
 
 import AppKit
 
@@ -16,6 +15,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installCrashLogging()
 
+        #if DEBUG
+        // Marketing screenshots: open the canvas previews as windows and skip the notch/menu-bar shells.
+        if Showcase.isRequested { Showcase.open(); return }
+        #endif
+
         let s = AppServices.shared
         menuBar = MenuBarController(player: s.player)
         notch = NotchController(player: s.player)
@@ -23,6 +27,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         s.mode.onChange = { [weak self] in self?.apply() }
         apply()
+        _ = s.widget   // start feeding the Now Playing widget
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["RIFT_NOSTR_SELFTEST"] == "1" { NostrRelay.selfTest() }
+        // Two-copy room test: RIFT_ROOM_HOST=CODE starts a room with that code,
+        // RIFT_ROOM_JOIN=CODE joins it.
+        if let c = ProcessInfo.processInfo.environment["RIFT_ROOM_HOST"] { FriendRoom.shared.debugHost(code: c) }
+        if let c = ProcessInfo.processInfo.environment["RIFT_ROOM_JOIN"] { FriendRoom.shared.join(c) }
+        #endif
 
         // YouTube's extraction requirements shift often (client/PO-token changes)
         // and yt-dlp ships fixes fast — check for a newer copy on every launch
@@ -50,9 +62,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let mode else { return }
         let notchOK = notch?.isNotchAvailable ?? false
         let showNotch = mode.mode == .notch && notchOK
-        // On a notch Mac the mode picker decides; a non-notch Mac has no
-        // fallback surface, so its own on/off toggle decides instead.
-        let showMenuBar = notchOK ? (mode.mode == .menuBar) : mode.menuBarIconVisible
+        // No screen at all (headless) → menu bar so controls stay reachable.
+        let showMenuBar = mode.mode == .menuBar || !notchOK
 
         Log.player.info("display mode → \(mode.mode.rawValue, privacy: .public) (notch available \(notchOK)) ⇒ notch \(showNotch) menuBar \(showMenuBar)")
         showNotch ? notch?.show() : notch?.hide()

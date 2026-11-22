@@ -38,22 +38,33 @@ struct InnerTubeClient {
     // Search filter: songs only. (base64 of the "Songs" chip params.)
     private static let songsFilterParams = "EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D"
 
-    private static func context(brandId: String? = nil) -> [String: Any] {
+    /// InnerTube client identity. WEB_REMIX for everything, except timed
+    /// lyrics, which only the Android app client receives.
+    private struct Client {
+        let name: String, version: String
+        static let web = Client(name: clientName, version: clientVersion)
+        // Ref: ytmusicapi `get_lyrics(timestamps=True)` — switches to the
+        // mobile client; the response then carries `timedLyricsData`.
+        static let androidMusic = Client(name: "ANDROID_MUSIC", version: "7.21.50")
+    }
+
+    private static func context(brandId: String? = nil, client: Client = .web) -> [String: Any] {
         var userDict: [String: Any] = [:]
         if let brandId {
             userDict["onBehalfOfUser"] = brandId
         }
         return [
             "client": [
-                "clientName": clientName,
-                "clientVersion": clientVersion,
+                "clientName": client.name,
+                "clientVersion": client.version,
                 "hl": "en", "gl": "US",
             ],
             "user": userDict,
         ]
     }
 
-    private static func request(_ endpoint: String, body: [String: Any], auth overrideAuth: YTAuth? = nil) async throws -> [String: Any] {
+    private static func request(_ endpoint: String, body: [String: Any], auth overrideAuth: YTAuth? = nil,
+                                client: Client = .web, anonymous: Bool = false) async throws -> [String: Any] {
         guard let url = URL(string: "\(base)/\(endpoint)?prettyPrint=false") else {
             throw URLError(.badURL)
         }
@@ -70,7 +81,7 @@ struct InnerTubeClient {
         // Authenticated? Attach the YTM session so browse/home returns the
         // user's personalized feed, library, and subscriptions. An explicit
         // override is used during login (before the session is saved to Keychain).
-        let auth = overrideAuth ?? AuthStore.load()
+        let auth = anonymous ? nil : (overrideAuth ?? AuthStore.load())
         if let auth {
             req.setValue(auth.cookie, forHTTPHeaderField: "Cookie")
             req.setValue(sapisidHash(auth.sapisid), forHTTPHeaderField: "Authorization")
@@ -78,7 +89,7 @@ struct InnerTubeClient {
         }
 
         var full = body
-        full["context"] = context(brandId: auth?.brandId)
+        full["context"] = context(brandId: auth?.brandId, client: client)
         req.httpBody = try JSONSerialization.data(withJSONObject: full)
 
         let (data, resp) = try await URLSession.shared.data(for: req)
@@ -377,10 +388,48 @@ struct InnerTubeClient {
     /// ponytail: YTM returns plain (untimed) text here — synced/timed lyrics would
     /// need a different source (e.g. LRCLIB). Plain is enough for a lyrics panel.
     static func lyrics(videoId: String) async throws -> String? {
+        guard let browseId = try await lyricsBrowseId(videoId: videoId) else { return nil }
+        return try await lyrics(browseId: browseId)
+    }
+
+    /// The Lyrics tab's browseId (MPLYt…), or nil when YTM has no lyrics.
+    static func lyricsBrowseId(videoId: String) async throws -> String? {
         let next = try await request("next", body: ["videoId": videoId])
         var ids: [String] = []
         collectStrings(next, key: "browseId", into: &ids)
-        guard let browseId = ids.first(where: { $0.hasPrefix("MPLYt") }) else { return nil }
+        return ids.first(where: { $0.hasPrefix("MPLYt") })
+    }
+
+    /// Time-stamped lyrics (LyricFind via YTM). Ref: ytmusicapi
+    /// `get_lyrics(browseId, timestamps=True)` — same browse, mobile client;
+    /// lines live in `timedLyricsData[] { lyricLine, cueRange.startTimeMilliseconds }`.
+    /// Sent anonymously: the web session cookie isn't valid for the app client.
+    static func timedLyrics(browseId: String) async throws -> [LyricLine]? {
+        let json = try await request("browse", body: ["browseId": browseId],
+                                     client: .androidMusic, anonymous: true)
+        guard let data = firstArray(in: json, key: "timedLyricsData") else { return nil }
+        let lines = data.compactMap { item -> LyricLine? in
+            guard let d = item as? [String: Any],
+                  let cue = d["cueRange"] as? [String: Any],
+                  let ms = (cue["startTimeMilliseconds"] as? String).flatMap(Double.init)
+                        ?? (cue["startTimeMilliseconds"] as? Double) else { return nil }
+            let text = (d["lyricLine"] as? String) ?? ""
+            return LyricLine(time: ms / 1000, text: text == "♪" ? "" : text)
+        }
+        return lines.isEmpty ? nil : lines.sorted { $0.time < $1.time }
+    }
+
+    private static func firstArray(in obj: Any, key: String) -> [Any]? {
+        if let d = obj as? [String: Any] {
+            if let hit = d[key] as? [Any] { return hit }
+            for (_, v) in d { if let r = firstArray(in: v, key: key) { return r } }
+        } else if let a = obj as? [Any] {
+            for v in a { if let r = firstArray(in: v, key: key) { return r } }
+        }
+        return nil
+    }
+
+    static func lyrics(browseId: String) async throws -> String? {
         let json = try await browse(browseId)
         var shelves: [[String: Any]] = []
         collect(json, key: "musicDescriptionShelfRenderer", into: &shelves)

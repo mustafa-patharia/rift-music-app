@@ -52,7 +52,7 @@ function WaveStrip({ bars = 46 }: { bars?: number }) {
 export function Hero() {
   return (
     <header className="hero" id="top">
-      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.0.1 is active</a>
+      <a className="eyebrow-chip reveal" href="#features"><span className="dot" /> v1.1.0 is active</a>
       <h1 className="reveal">A player for <span className="accent-word">all</span><br /> your music.</h1>
       <p className="hero-sub reveal">
         A native Mac YouTube Music client in SwiftUI — a Dynamic Island for your music,
@@ -127,7 +127,7 @@ export function Features() {
         <article className="cell span5 reveal">
           <div className="motif eq" aria-hidden><i /><i /><i /><i /><i /></div>
           <h3>A living notch</h3>
-          <p>Album art and an equalizer peek beside the camera while music plays. Hover, and the island blooms into a full transport.</p>
+          <p>Album art and an equalizer peek beside the camera while music plays. Hover, and the island blooms into a full transport. No notch? Rift draws one.</p>
         </article>
         <article className="cell span4 reveal">
           <div className="motif cass" aria-hidden><span className="reel" /><span className="reel" /></div>
@@ -136,8 +136,8 @@ export function Features() {
         </article>
         <article className="cell span4 reveal">
           <div className="motif lyric-lines" aria-hidden><span /><span /><span /><span /></div>
-          <h3>Lyrics, translated on-device</h3>
-          <p>Built-in synced lyrics — and optional local AI (Apple Intelligence or Ollama) that transliterates and translates them. Nothing leaves your Mac.</p>
+          <h3>Sing along in any script</h3>
+          <p>Synced lyrics that keep time — and optional AI that rewrites them in a script you can read, same words, so you can sing along. On-device with Apple Intelligence, or bring your own API key.</p>
         </article>
         <article className="cell span4 reveal">
           <div className="motif chart-mini" aria-hidden><i style={{ height: "40%" }} /><i style={{ height: "75%" }} /><i style={{ height: "55%" }} /><i style={{ height: "100%" }} /><i style={{ height: "65%" }} /></div>
@@ -151,9 +151,19 @@ export function Features() {
           </div>
         </article>
         <article className="cell span6 reveal">
+          <div className="motif sparkle" aria-hidden>◎</div>
+          <h3>Listen together</h3>
+          <p>Start a room, share the code, and friends anywhere hear what you play — in sync, end-to-end encrypted, no account. Or find Macs running Rift nearby.</p>
+        </article>
+        <article className="cell span6 reveal">
+          <div className="motif eq" aria-hidden><i /><i /><i /><i /><i /></div>
+          <h3>On your desktop</h3>
+          <p>A Now Playing widget with play, pause and skip — right on the desktop, no window needed.</p>
+        </article>
+        <article className="cell span6 reveal">
           <div className="motif sparkle" aria-hidden>✦</div>
-          <h3>On-device AI</h3>
-          <p>Understand and translate lyrics with local models. No API key. No account. No data leaving your machine.</p>
+          <h3>AI, your choice</h3>
+          <p>Apple Intelligence on your Mac, or your own key for Gemini, Groq, OpenAI, Anthropic and more. Off until you turn it on.</p>
         </article>
       </div>
     </section>
@@ -175,7 +185,7 @@ export function Notch() {
           <Shot name="top_notch" alt="Rift Music App Dynamic Island expanded with full transport controls" />
         </div>
       </div>
-      <p className="notch-cap reveal">The island lives in the notch when you have one, and tucks away when you don&rsquo;t.</p>
+      <p className="notch-cap reveal">The island lives in the notch when you have one — and on Macs without one, Rift draws a slim island at the top of the screen.</p>
     </section>
   );
 }

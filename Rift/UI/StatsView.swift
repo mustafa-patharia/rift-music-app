@@ -55,17 +55,22 @@ struct StatsView: View {
                     let songs = topSongs
                     let artists = topArtists
                     chips
-                    HStack(alignment: .top, spacing: 16) {
-                        if let s = songs.first { heroSong(s).frame(maxWidth: .infinity) }
-                        if let a = artists.first { heroArtist(a).frame(maxWidth: .infinity) }
+                    // Adaptive grids wrap to the next row instead of squeezing —
+                    // a fixed HStack forced the column wider than the window when
+                    // the queue rail was open.
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 16, alignment: .top)],
+                              alignment: .leading, spacing: 16) {
+                        if let s = songs.first { heroSong(s) }
+                        if let a = artists.first { heroArtist(a) }
                     }
                     // "On Repeat" means repeat — one play doesn't qualify.
                     let repeats = songs.dropFirst().filter { $0.plays >= 2 }
                     if !repeats.isEmpty { onRepeat(repeats) }
                     if artists.count > 1 { artistRow(Array(artists.dropFirst())) }
-                    HStack(alignment: .top, spacing: 16) {
-                        hourChart.frame(maxWidth: .infinity)
-                        weekdayChart.frame(maxWidth: .infinity)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 16, alignment: .top)],
+                              alignment: .leading, spacing: 16) {
+                        hourChart
+                        weekdayChart
                     }
                 }
             }
@@ -164,23 +169,29 @@ struct StatsView: View {
 
     // MARK: header + chips
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Your Listening").font(.largeTitle.bold())
-                Text("Private — stats never leave this Mac.")
-                    .font(.caption).foregroundStyle(.tertiary)
-            }
-            Spacer()
-            Picker("", selection: $range) {
-                ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented).frame(width: 280)
+        // Picker drops below the title when the column is too narrow for both.
+        ViewThatFits(in: .horizontal) {
+            HStack { title; Spacer(); rangePicker }
+            VStack(alignment: .leading, spacing: 12) { title; rangePicker }
         }
+    }
+
+    private var title: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Your Listening").font(.largeTitle.bold())
+            Text("Private — stats never leave this Mac.")
+                .font(.caption).foregroundStyle(.tertiary)
+        }
+    }
+
+    private var rangePicker: some View {
+        PillPicker(selection: $range, options: Range.allCases, title: \.rawValue)
     }
 
     private var chips: some View {
         let secs = filtered.reduce(0) { $0 + $1.cleanSeconds }
-        return HStack(spacing: 10) {
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 10)],
+                         alignment: .leading, spacing: 10) {
             chip("clock.fill", fmtHours(secs), "Listened")
             chip("play.circle.fill", "\(filtered.count)", "Plays")
             chip("music.note", "\(Set(filtered.map(\.trackId)).count)", "Songs")
@@ -194,7 +205,9 @@ struct StatsView: View {
             Text(value).font(.system(size: 17, weight: .bold, design: .rounded))
             Text(label).font(.caption).foregroundStyle(.secondary)
         }
+        .lineLimit(1)
         .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .liquidGlass(in: .capsule)
         .overlay(Capsule().strokeBorder(.white.opacity(0.10)))
     }
@@ -284,7 +297,8 @@ struct StatsView: View {
     private func onRepeat(_ songs: [SongAgg]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("On Repeat").font(.title3.bold())
-            HStack(alignment: .top, spacing: 16) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 124, maximum: 124), spacing: 16, alignment: .top)],
+                      alignment: .leading, spacing: 18) {
                 ForEach(songs) { s in
                     HoverCard {
                         Button { player.play(s.event.asTrack) } label: {
@@ -308,7 +322,6 @@ struct StatsView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                Spacer(minLength: 0)
             }
         }
     }
@@ -316,7 +329,8 @@ struct StatsView: View {
     private func artistRow(_ artists: [ArtistAgg]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Your Artists").font(.title3.bold())
-            HStack(alignment: .top, spacing: 22) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 96, maximum: 96), spacing: 22, alignment: .top)],
+                      alignment: .leading, spacing: 18) {
                 ForEach(artists) { a in
                     HoverCard {
                         Button { openArtist(a.name) } label: {
@@ -333,7 +347,6 @@ struct StatsView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                Spacer(minLength: 0)
             }
         }
     }
