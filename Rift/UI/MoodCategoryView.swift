@@ -37,6 +37,7 @@ struct MoodCategoryView: View {
                                     ForEach(section.cards) { MusicCardView(card: $0) }
                                 }
                                 .padding(.horizontal, 22)
+                                .padding(.vertical, 12) // room for the hover zoom + shadow
                             }
                         }
                     }

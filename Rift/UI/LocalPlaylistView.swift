@@ -104,6 +104,9 @@ struct LocalPlaylistView: View {
                         Button { draftName = p.title; renaming = true } label: {
                             Label("Rename", systemImage: "pencil")
                         }
+                        Button { CoverStore.shared.editing = .init(id: p.id, title: p.title) } label: {
+                            Label("Customize Cover…", systemImage: "paintpalette")
+                        }
                         Button(role: .destructive) { confirmDelete = true } label: {
                             Label("Delete Playlist", systemImage: "trash")
                         }
@@ -130,13 +133,17 @@ struct LocalPlaylistView: View {
     }
 }
 
-/// Cover = first track's poster, or a glass placeholder for empty playlists.
+/// Cover = the custom emoji cover if set, else the first track's poster, else
+/// a glass placeholder for empty playlists.
 struct PlaylistCover: View {
     let playlist: PlaylistStore.UserPlaylist
     var size: CGFloat = 150
+    @ObservedObject private var covers = CoverStore.shared
 
     var body: some View {
-        if let art = playlist.tracks.first?.artworkURL {
+        if let custom = covers.cover(for: playlist.id) {
+            CustomCoverArt(cover: custom, title: playlist.title, size: size)
+        } else if let art = playlist.tracks.first?.artworkURL {
             Artwork(url: art, size: size).clipShape(.rect(cornerRadius: 10))
         } else {
             RoundedRectangle(cornerRadius: 10)
@@ -201,6 +208,10 @@ struct LocalPlaylistCard: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hover)
         .onHover { hover = $0 }
         .contextMenu {
+            Button { CoverStore.shared.editing = .init(id: playlist.id, title: playlist.title) } label: {
+                Label("Customize Cover…", systemImage: "paintpalette")
+            }
+            Divider()
             Button(role: .destructive) { PlaylistStore.shared.delete(playlist.id) } label: {
                 Label("Delete Playlist", systemImage: "trash")
             }

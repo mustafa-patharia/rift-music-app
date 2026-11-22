@@ -13,6 +13,7 @@ struct ContentView: View {
     @EnvironmentObject var auth: AuthController
     @EnvironmentObject var ui: UIState
     @ObservedObject private var playlistStore = PlaylistStore.shared
+    @ObservedObject private var coverStore = CoverStore.shared
     @State private var panel: Panel = .home
     @State private var newPlaylistName = ""
     @AppStorage("hasOnboarded") private var hasOnboarded = false
@@ -140,6 +141,8 @@ struct ContentView: View {
         // the welcome flow owns the screen.
         .onAppear { ui.onboarding = !hasOnboarded }
         .onChange(of: hasOnboarded) { _, done in ui.onboarding = !done }
+        // One app-level cover editor for every "Customize Cover…" entry point.
+        .sheet(item: $coverStore.editing) { CoverEditorView(target: $0) }
         .sheet(isPresented: $auth.showingLogin) {
             if auth.pendingAuth != nil {
                 // Account chooser — shown after Google login when multiple

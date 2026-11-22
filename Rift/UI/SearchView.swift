@@ -75,6 +75,7 @@ struct SearchView: View {
                         HStack(alignment: .top, spacing: 18) {
                             ForEach(artists) { MusicCardView(card: $0) }
                         }
+                        .padding(.vertical, 12) // room for the hover zoom + shadow
                     }
                     .padding(.bottom, 6)
                     if !results.isEmpty { Text("Songs").font(.headline) }
@@ -150,6 +151,7 @@ struct SearchView: View {
                                 HStack(alignment: .top, spacing: 18) {
                                     ForEach(section.cards) { MusicCardView(card: $0) }
                                 }
+                                .padding(.vertical, 12) // room for the hover zoom + shadow
                             }
                         }
                         .padding(.top, 18)
