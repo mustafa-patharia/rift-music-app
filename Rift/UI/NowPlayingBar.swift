@@ -20,6 +20,7 @@ struct NowPlayingBar: View {
 
     @State private var scrubValue: Double = 0
     @State private var scrubbing = false
+    @ObservedObject private var peers = PeerSession.shared
 
     // Must match PlayerPanelController: the panel is `pillHeight + headroom` tall;
     // the pill sits at the bottom.
@@ -116,7 +117,7 @@ struct NowPlayingBar: View {
         .fixedSize()
     }
 
-    // MARK: right — like, queue
+    // MARK: right — like, together, queue
     // Elapsed/duration used to live here as one "1:17 / 4:01" label; it now sits
     // under the scrubber, split to the two ends (see `scrubber`).
     private func right(showQueueIcon: Bool) -> some View {
@@ -126,6 +127,13 @@ struct NowPlayingBar: View {
                            active: likes.isLiked(t.id), activeColor: .red) { likes.toggle(t) }
                     .help(likes.isLiked(t.id) ? "Remove from Liked" : "Like")
             }
+            iconButton("shareplay", active: peers.hosting || peers.following != nil || FriendRoom.shared.isActive) {
+                if ui.showFullPlayer {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { ui.showFullPlayer = false }
+                }
+                ui.panelRequest = .together
+            }
+            .help("Together — listen with friends anywhere or Macs nearby")
             if showQueueIcon {
                 iconButton("sidebar.right", active: showQueue) {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showQueue.toggle() }

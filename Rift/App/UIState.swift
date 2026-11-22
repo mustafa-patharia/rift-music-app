@@ -15,6 +15,8 @@ final class UIState: ObservableObject {
     /// panel is a separate NSWindow, so it would otherwise sit on top of the
     /// welcome flow — a restored (paused) track is enough to summon it.
     @Published var onboarding = false
+    /// Set to switch the main window's sidebar tab from anywhere.
+    @Published var panelRequest: Panel?
     /// Left nav rail hidden (titlebar button / ⌃⌘S). Persisted across launches.
     @Published var sidebarCollapsed = UserDefaults.standard.bool(forKey: "sidebarCollapsed") {
         didSet { UserDefaults.standard.set(sidebarCollapsed, forKey: "sidebarCollapsed") }

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 // AIStore — which AI backend powers the app's AI features (sing-along
-// transliteration, lyric translation, future playlist builder). Off by default: the user picks a provider in
+// transliteration, future playlist builder). Off by default: the user picks a provider in
 // Settings first. Apple Intelligence = the built-in macOS 26 on-device system
 // model (no download, nothing leaves the Mac); API Key = the user's own key
 // for a hosted model (Gemini / OpenAI / Anthropic / OpenRouter / custom).
 
 import Foundation
-import NaturalLanguage
 
 @MainActor
 final class AIStore: ObservableObject {
@@ -68,29 +67,6 @@ final class AIStore: ObservableObject {
 
 /// The feature-facing facade — routes each task to the selected provider.
 enum AI {
-
-    /// Each line in English, same count and order as `lines` — so synced
-    /// lyrics stay synced in translation. Keeps the poetic register; not a
-    /// word-by-word gloss.
-    @MainActor
-    static func translate(_ lines: [String]) async throws -> [String] {
-        let instructions = """
-        You translate song lyrics into natural English. Preserve the poetic \
-        tone and meaning — do not explain, annotate, or add anything. Lines \
-        already in English stay unchanged.
-        Input lines look like "7| text". Output every line in the same format \
-        with the same number, one per line, and nothing else.
-        """
-        return try await numbered(lines, instructions: instructions) { $0 }
-    }
-
-    /// Dominant language isn't English → offer the translate action.
-    static func isNonEnglish(_ text: String) -> Bool {
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(String(text.prefix(400)))
-        guard let lang = recognizer.dominantLanguage else { return false }
-        return lang != .english
-    }
 
     @MainActor
     static func respond(instructions: String, to chunk: String) async throws -> String {

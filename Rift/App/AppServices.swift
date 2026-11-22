@@ -16,6 +16,7 @@ final class AppServices {
     let auth = AuthController()
     let ui = UIState()
     lazy var playerPanel = PlayerPanelController(player: player, ui: ui)
+    lazy var widget = WidgetBridge(player: player)
 
     private init() {
         // Unpack the bundled playback engine (python + yt-dlp, both inside the

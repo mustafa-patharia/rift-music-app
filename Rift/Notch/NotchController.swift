@@ -17,11 +17,11 @@ final class NotchController {
         self.player = player
     }
 
-    var isNotchAvailable: Bool { NotchDetector.hasNotch }
+    /// Always true with a screen attached — non-notch Macs get a virtual notch.
+    var isNotchAvailable: Bool { NotchDetector.island != nil }
 
     func show() {
-        guard let screen = NotchDetector.notchScreen else { return }
-        let notch = NotchDetector.notchRect(on: screen)
+        guard let (screen, notch, isVirtual) = NotchDetector.island else { return }
 
         // Window is sized for the LARGEST the card can be tuned to (Settings →
         // Notch Tuning writes "notch.*" defaults read live by NotchView); the
@@ -41,6 +41,7 @@ final class NotchController {
 
         let root = NotchView(
             notchSize: CGSize(width: notch.width, height: notch.height),
+            isVirtual: isVirtual,
             expandedSize: CGSize(width: expandedW, height: expandedH)
         ).environmentObject(player)
         // sizingOptions = []: the notch card is explicitly sized by this window, so

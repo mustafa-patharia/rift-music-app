@@ -136,7 +136,7 @@ export function Features() {
         </article>
         <article className="cell span4 reveal">
           <div className="motif lyric-lines" aria-hidden><span /><span /><span /><span /></div>
-          <h3>Lyrics, translated on-device</h3>
+          <h3>Sing along in any script</h3>
           <p>Synced lyrics that keep time — and optional AI that rewrites them in a script you can read, same words, so you can sing along. On-device with Apple Intelligence, or bring your own API key.</p>
         </article>
         <article className="cell span4 reveal">
@@ -153,7 +153,7 @@ export function Features() {
         <article className="cell span6 reveal">
           <div className="motif sparkle" aria-hidden>✦</div>
           <h3>On-device AI</h3>
-          <p>Understand and translate lyrics with local models. No API key. No account. No data leaving your machine.</p>
+          <p>Apple Intelligence on your Mac, or your own API key. Off until you turn it on.</p>
         </article>
       </div>
     </section>

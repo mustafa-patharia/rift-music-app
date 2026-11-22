@@ -128,27 +128,13 @@ struct SettingsPanelView: View {
     }
 
     private var displaySection: some View {
-        Group {
-            if NotchDetector.hasNotch {
-                section("Player Display",
-                        footer: "Menu bar shows a mini player in the status bar. Notch turns the camera housing into a dynamic island.") {
-                    row("Show player in") {
-                        Picker("", selection: $mode.mode) {
-                            ForEach(AppModeController.Mode.allCases) { Text($0.label).tag($0) }
-                        }
-                        .pickerStyle(.segmented).labelsHidden()
-                        .frame(width: 340)
-                    }
-                }
-            } else {
-                section("Player Display",
-                        footer: "No notch on this Mac. Playback controls are always in the main window; " +
-                                "this adds a quick mini player in the status bar too.") {
-                    row("Show menu bar icon") {
-                        Toggle("", isOn: $mode.menuBarIconVisible)
-                            .toggleStyle(.switch).labelsHidden().controlSize(.small)
-                    }
-                }
+        section("Player Display",
+                footer: NotchDetector.hasNotch
+                    ? "Menu bar shows a mini player in the status bar. Notch turns the camera housing into a dynamic island."
+                    : "Menu bar shows a mini player in the status bar. Dynamic island adds a small black bar at the top centre of the screen — hover it to expand the player.") {
+            row("Show player in") {
+                PillPicker(selection: $mode.mode, options: AppModeController.Mode.allCases,
+                           title: \.label, size: .small)
             }
         }
     }
@@ -173,10 +159,8 @@ struct SettingsPanelView: View {
             }
             divider
             row("Now Playing style", subtitle: "Cover art, or a spinning record on a turntable") {
-                Picker("", selection: $nowPlayingStyle) {
-                    ForEach(NowPlayingStyle.allCases) { Text($0.label).tag($0) }
-                }
-                .pickerStyle(.segmented).labelsHidden().frame(width: 220)
+                PillPicker(selection: $nowPlayingStyle, options: NowPlayingStyle.allCases,
+                           title: \.label, size: .small)
             }
         }
     }
@@ -225,11 +209,8 @@ struct SettingsPanelView: View {
                         .overlay(Capsule().strokeBorder(.orange.opacity(0.35)))
                 }
                 Spacer(minLength: 16)
-                Picker("", selection: $ai.provider) {
-                    ForEach(AIStore.Provider.allCases) { Text($0.label).tag($0) }
-                }
-                .pickerStyle(.segmented).labelsHidden()
-                .frame(width: 340)
+                PillPicker(selection: $ai.provider, options: AIStore.Provider.allCases,
+                           title: \.label, size: .small)
             }
             .padding(.horizontal, 16)
             .frame(minHeight: 44)
@@ -293,6 +274,9 @@ struct SettingsPanelView: View {
                     }
                     Link(destination: URL(string: "https://github.com/MustafaPatharia/rift-music-app/issues")!) {
                         Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                    }
+                    Button { UserDefaults.standard.set(false, forKey: "hasOnboarded") } label: {
+                        Label("Replay Welcome Tour", systemImage: "sparkles")
                     }
                 }
                 .font(.caption).buttonStyle(.plain)

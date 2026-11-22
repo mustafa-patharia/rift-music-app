@@ -16,6 +16,9 @@ struct NotchView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let notchSize: CGSize
+    /// No camera housing behind it (non-notch Mac): the collapsed pill is the
+    /// whole visible bar, so it gets softer, fully rounded bottom corners.
+    var isVirtual = false
     let expandedSize: CGSize
 
     @State private var hovering = false
@@ -50,7 +53,12 @@ struct NotchView: View {
     var body: some View {
         let open = hovering || forcedOpen
         let peeking = !open && player.isPlaying && player.track != nil
-        let bodyW = notchSize.width + bodyExtraWidth        // what you SEE
+        // The virtual bar is shorter than a real notch: fit the thumb with an
+        // even 4pt margin top and bottom instead of the fixed 24pt.
+        let artSide = isVirtual ? max(notchSize.height - 8, 12) : peekArtSize
+        // A virtual notch is ~half a real one; open the card as wide as on a
+        // notch Mac (real notch ≈ 185pt) so the player isn't cramped.
+        let bodyW = (isVirtual ? max(notchSize.width, 190) : notchSize.width) + bodyExtraWidth
         let w = open ? bodyW + openTopRadius * 2            // + scoop wings
               : peeking ? notchSize.width + peekSideWidth * 2
               : notchSize.width
@@ -69,7 +77,7 @@ struct NotchView: View {
                     AsyncImage(url: player.track?.artworkURL) {
                         $0.resizable().aspectRatio(contentMode: .fill)
                     } placeholder: { Color.clear }
-                        .frame(width: peekArtSize, height: peekArtSize)
+                        .frame(width: artSide, height: artSide)
                         .clipShape(.rect(cornerRadius: 5))
                         .frame(width: peekSideWidth)
                         .offset(x: peekEdgeInset)               // slight breathing room from the left edge
@@ -120,7 +128,8 @@ struct NotchView: View {
 
     private func notchShape(_ open: Bool) -> NotchShape {
         NotchShape(topCornerRadius: open ? openTopRadius : closedTopRadius,
-                   bottomCornerRadius: open ? openBottomRadius : closedBottomRadius)
+                   bottomCornerRadius: open ? openBottomRadius
+                                     : isVirtual ? notchSize.height / 2 : closedBottomRadius)
     }
 }
 

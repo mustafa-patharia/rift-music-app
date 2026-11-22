@@ -141,6 +141,12 @@ struct ContentView: View {
         // the welcome flow owns the screen.
         .onAppear { ui.onboarding = !hasOnboarded }
         .onChange(of: hasOnboarded) { _, done in ui.onboarding = !done }
+        // Other views (e.g. the now-playing bar's Together button) ask to switch tabs.
+        .onChange(of: ui.panelRequest) { _, p in
+            guard let p else { return }
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.75)) { panel = p }
+            ui.panelRequest = nil
+        }
         // One app-level cover editor for every "Customize Cover…" entry point.
         .sheet(item: $coverStore.editing) { CoverEditorView(target: $0) }
         .sheet(isPresented: $auth.showingLogin) {
@@ -169,6 +175,7 @@ struct ContentView: View {
         case .home:    HomeView().id(auth.isAuthenticated)   // refetch feed on sign in/out
         case .search:  SearchView()
         case .library: LibraryView()
+        case .together: TogetherView()
         case .stats:   StatsView()
         case .settings: SettingsPanelView()
         }
@@ -301,5 +308,9 @@ private struct SidebarToggleButton: View {
         .accessibilityLabel(ui.sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar")
         .padding(.leading, 6)
         .frame(maxHeight: .infinity)
+        // The welcome tour covers the window; a sidebar button over it means nothing.
+        .opacity(ui.onboarding ? 0 : 1)
+        .allowsHitTesting(!ui.onboarding)
+        .animation(.easeInOut(duration: 0.25), value: ui.onboarding)
     }
 }

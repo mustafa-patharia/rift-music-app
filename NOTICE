@@ -36,6 +36,11 @@ boring.notch — https://github.com/TheBoredTeam/boring.notch
     Atoll's notch window / Spaces code (above) originates from boring.notch;
     the upstream attribution is preserved in the adapted files.
 
+swift-secp256k1 — https://github.com/21-DOT-DEV/swift-secp256k1
+    License: MIT (bundles bitcoin-core/secp256k1, MIT)
+    Swift Package dependency (0.24.0) — BIP-340 Schnorr signatures for the
+    Nostr events behind "Friends anywhere" (Rift/Core/Peer/NostrRelay.swift).
+
 Protocol references (no code copied — Swift reimplementations of public /
 reverse-engineered protocol shapes, which are not themselves copyrightable):
 
@@ -49,6 +54,9 @@ reverse-engineered protocol shapes, which are not themselves copyrightable):
     pear-desktop — https://github.com/pear-devs/pear-desktop   (MIT)
         Reference for the affiliation disclaimer wording and WebView-wrapper
         playback patterns.
+
+    Nostr NIP-01 — https://github.com/nostr-protocol/nips   (public domain)
+        Event format and relay messages implemented in NostrRelay.swift.
 
 Downloads (planned): yt-dlp — https://github.com/yt-dlp/yt-dlp  (Unlicense)
     Invoked out-of-process to resolve stream URLs / download audio.

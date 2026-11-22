@@ -21,11 +21,10 @@ struct FullScreenPlayerView: View {
     @State private var synced: [LyricLine]?
     @State private var lyricsState: LyricsState = .idle
     // AI lyric views (local model via AI facade) — cached per track.
-    private enum LyricsDisplay: Equatable { case original, script(LyricScript), english }
+    private enum LyricsDisplay: Equatable { case original, script(LyricScript) }
     @State private var display: LyricsDisplay = .original
     /// Sing-along rewrites, line-for-line with `sourceLines`, per script.
     @State private var scripted: [LyricScript: [String]] = [:]
-    @State private var english: [String]?
     @State private var aiWorking = false
     /// Last AI failure, shown under the lyrics header until the next try.
     @State private var aiError: String?
@@ -316,7 +315,6 @@ struct FullScreenPlayerView: View {
         switch display {
         case .original:  return lyrics ?? ""
         case .script(let s): return scripted[s]?.joined(separator: "\n") ?? lyrics ?? ""
-        case .english:   return english?.joined(separator: "\n") ?? lyrics ?? ""
         }
     }
 
@@ -331,7 +329,6 @@ struct FullScreenPlayerView: View {
         guard let lines = synced else { return nil }
         switch display {
         case .original: return lines
-        case .english: return aligned(english, to: lines)
         case .script(let s): return aligned(scripted[s], to: lines)
         }
     }
@@ -345,38 +342,27 @@ struct FullScreenPlayerView: View {
     // is enabled:
     //  • mic — "Sing along": the same words rewritten in a script the
     //    listener reads (phonetic, never translated)
-    //  • translate — English meaning, only for non-English lyrics
     @ViewBuilder private var lyricsAIMenu: some View {
         if lyricsState == .loaded, let text = lyrics, ai.isReady {
             let source = LyricScript.dominant(in: text)
             let singing: Bool = { if case .script = display { return true }; return false }()
-            HStack(spacing: 8) {
-                Menu {
-                    Section("Sing along in") {
-                        Button { display = .original } label: { check("Original script", !singing) }
-                        ForEach(LyricScript.allCases.filter { !$0.isSource(of: source) }) { s in
-                            Button { switchTo(.script(s)) } label: { check(s.label, display == .script(s)) }
-                        }
+            Menu {
+                Section("Sing along in") {
+                    Button { display = .original } label: { check("Original script", !singing) }
+                    ForEach(LyricScript.allCases.filter { !$0.isSource(of: source) }) { s in
+                        Button { switchTo(.script(s)) } label: { check(s.label, display == .script(s)) }
                     }
-                } label: {
-                    aiCapsule("music.mic", active: singing)
                 }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                // borderlessButton drops the label's background — redraw it here.
-                .frame(width: 34, height: 26)
-                .background(.ultraThinMaterial, in: .capsule)
-                .help("Sing along — same words in a script you can read")
-                .accessibilityLabel("Sing along script")
-
-                if AI.isNonEnglish(text) {
-                    Button { display == .english ? (display = .original) : switchTo(.english) } label: {
-                        aiCapsule("translate", active: display == .english)
-                    }
-                    .buttonStyle(.plain)
-                    .help(display == .english ? "Show original lyrics" : "Translate to English")
-                    .accessibilityLabel("English translation")
-                }
+            } label: {
+                aiCapsule("music.mic", active: singing)
             }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            // borderlessButton drops the label's background — redraw it here.
+            .frame(width: 34, height: 26)
+            .background(.ultraThinMaterial, in: .capsule)
+            .help("Sing along — same words in a script you can read")
+            .accessibilityLabel("Sing along script")
+
             .disabled(aiWorking)
         }
     }
@@ -401,7 +387,6 @@ struct FullScreenPlayerView: View {
         let cached: Bool
         switch target {
         case .script(let s): cached = scripted[s] != nil
-        case .english: cached = english != nil
         case .original: cached = true
         }
         if cached { display = target; return }
@@ -416,10 +401,6 @@ struct FullScreenPlayerView: View {
                     let r = try await AI.transliterate(lines, into: s)
                     guard player.track?.id == trackId else { return }
                     scripted[s] = r
-                case .english:
-                    let r = try await AI.translate(lines)
-                    guard player.track?.id == trackId else { return }
-                    english = r
                 case .original: break
                 }
                 display = target
@@ -432,9 +413,9 @@ struct FullScreenPlayerView: View {
 
     private func loadLyrics() async {
         guard let track = player.track, URL(string: track.id)?.isFileURL != true else {
-            lyricsState = .none; lyrics = nil; synced = nil; scripted = [:]; english = nil; aiError = nil; display = .original; return
+            lyricsState = .none; lyrics = nil; synced = nil; scripted = [:]; aiError = nil; display = .original; return
         }
-        scripted = [:]; english = nil; aiError = nil; display = .original
+        scripted = [:]; aiError = nil; display = .original
         lyricsState = .loading; lyrics = nil; synced = nil
         // Every source in order (YTM timed → LRCLIB → official audio → plain).
         let found = await SyncedLyrics.resolve(track,

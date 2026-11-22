@@ -185,10 +185,7 @@ struct StatsView: View {
     }
 
     private var rangePicker: some View {
-        Picker("", selection: $range) {
-            ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
-        }
-        .pickerStyle(.segmented).frame(width: 280)
+        PillPicker(selection: $range, options: Range.allCases, title: \.rawValue)
     }
 
     private var chips: some View {

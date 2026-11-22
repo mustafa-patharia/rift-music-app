@@ -6,19 +6,76 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C0000000000000000000003 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = C0000000000000000000002 /* P256K */; };
+		B0000000000000000000020 /* RiftWidget.appex in Embed Extensions */ = {isa = PBXBuildFile; fileRef = B0000000000000000000002 /* RiftWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B0000000000000000000021 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0000000000000000000006;
+			remoteInfo = RiftWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B0000000000000000000022 /* Embed Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B0000000000000000000020 /* RiftWidget.appex in Embed Extensions */,
+			);
+			name = "Embed Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A0000000000000000000002 /* Rift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0000000000000000000002 /* RiftWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RiftWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B0000000000000000000023 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				RiftWidget.entitlements,
+			);
+			target = B0000000000000000000006 /* RiftWidget */;
+		};
+		A0000000000000000000011 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A0000000000000000000006 /* Rift */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A0000000000000000000001 /* Rift */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Rift; sourceTree = "<group>"; };
+		A0000000000000000000001 /* Rift */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A0000000000000000000011 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Rift; sourceTree = "<group>"; };
+		B0000000000000000000001 /* RiftWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (B0000000000000000000023 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RiftWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B0000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A0000000000000000000003 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0000000000000000000003 /* P256K in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -29,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				A0000000000000000000001 /* Rift */,
+				B0000000000000000000001 /* RiftWidget */,
 				A0000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -37,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				A0000000000000000000002 /* Rift.app */,
+				B0000000000000000000002 /* RiftWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -44,6 +103,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B0000000000000000000006 /* RiftWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0000000000000000000007 /* Build configuration list for PBXNativeTarget "RiftWidget" */;
+			buildPhases = (
+				B0000000000000000000008 /* Sources */,
+				B0000000000000000000003 /* Frameworks */,
+				B0000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B0000000000000000000001 /* RiftWidget */,
+			);
+			name = RiftWidget;
+			productName = RiftWidget;
+			productReference = B0000000000000000000002 /* RiftWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		A0000000000000000000006 /* Rift */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Rift" */;
@@ -52,15 +131,20 @@
 				A0000000000000000000008 /* Sources */,
 				A0000000000000000000003 /* Frameworks */,
 				A0000000000000000000009 /* Resources */,
+				B0000000000000000000022 /* Embed Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B0000000000000000000024 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A0000000000000000000001 /* Rift */,
 			);
 			name = Rift;
+			packageProductDependencies = (
+				C0000000000000000000002 /* P256K */,
+			);
 			productName = Rift;
 			productReference = A0000000000000000000002 /* Rift.app */;
 			productType = "com.apple.product-type.application";
@@ -78,6 +162,9 @@
 					A0000000000000000000006 = {
 						CreatedOnToolsVersion = 26.5;
 					};
+					B0000000000000000000006 = {
+						CreatedOnToolsVersion = 26.5;
+					};
 				};
 			};
 			buildConfigurationList = A000000000000000000000B /* Build configuration list for PBXProject "Rift" */;
@@ -90,16 +177,27 @@
 			);
 			mainGroup = A0000000000000000000004;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C0000000000000000000001 /* XCRemoteSwiftPackageReference "swift-secp256k1" */,
+			);
 			productRefGroup = A0000000000000000000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				A0000000000000000000006 /* Rift */,
+				B0000000000000000000006 /* RiftWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B0000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A0000000000000000000009 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -130,6 +228,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B0000000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A0000000000000000000008 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -139,7 +244,65 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		B0000000000000000000024 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0000000000000000000006 /* RiftWidget */;
+			targetProxy = B0000000000000000000021 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		B000000000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RiftWidget/RiftWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RiftWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Rift;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustafapatharia.riftmusicapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		B000000000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = RiftWidget/RiftWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RiftWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Rift;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustafapatharia.riftmusicapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 		A000000000000000000000C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -233,6 +396,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Rift/Rift.entitlements;
+				INFOPLIST_FILE = Rift/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -241,9 +405,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rift Music App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Rift finds other Macs running Rift nearby so you can send songs and listen together.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mustafapatharia.riftmusicapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -257,6 +422,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Rift/Rift.entitlements;
+				INFOPLIST_FILE = Rift/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -265,9 +431,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rift Music App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Rift finds other Macs running Rift nearby so you can send songs and listen together.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "GPL-3.0-only. Not affiliated with Google LLC / YouTube.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mustafapatharia.riftmusicapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -278,6 +445,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B0000000000000000000007 /* Build configuration list for PBXNativeTarget "RiftWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B000000000000000000000E /* Debug */,
+				B000000000000000000000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Rift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -297,6 +473,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C0000000000000000000001 /* XCRemoteSwiftPackageReference "swift-secp256k1" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/21-DOT-DEV/swift-secp256k1";
+			requirement = {
+				kind = exactVersion;
+				version = 0.24.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C0000000000000000000002 /* P256K */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0000000000000000000001 /* XCRemoteSwiftPackageReference "swift-secp256k1" */;
+			productName = P256K;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A000000000000000000000A /* Project object */;
 }
