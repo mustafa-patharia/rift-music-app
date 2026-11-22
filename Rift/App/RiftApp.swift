@@ -84,6 +84,10 @@ struct RiftApp: App {
                 }
                 .keyboardShortcut("u", modifiers: .command)
             }
+            CommandGroup(replacing: .sidebar) {
+                Button("Toggle Sidebar") { AppServices.shared.ui.toggleSidebar() }
+                    .keyboardShortcut("s", modifiers: [.control, .command])
+            }
         }
 
         // No separate Settings window — settings live in-app (sidebar → Settings).

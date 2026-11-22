@@ -25,7 +25,10 @@ struct ContentView: View {
         // .ignoresSafeArea() view as a ZStack *sibling* expands the container and
         // pushes the foreground under the window chrome — the top-clip bug.)
         HStack(spacing: 0) {
-            Sidebar(panel: $panel).frame(width: 189)
+            if !ui.sidebarCollapsed {
+                Sidebar(panel: $panel).frame(width: Self.sidebarWidth)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+            }
 
             // Center column. The full player is an in-window layer that slides up
             // over ONLY this column (home/albums stay mounted behind it). Sidebar +
@@ -63,7 +66,10 @@ struct ContentView: View {
                         .zIndex(1)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // minWidth 0: the column takes what's left and never reports its
+            // content's width back to the HStack — an over-wide page used to
+            // push the sidebar and queue rail off both window edges.
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
             // Extra scroll room at the END of every scroll view so the last items
             // can scroll up past the floating pill. contentMargins (not
@@ -73,7 +79,7 @@ struct ContentView: View {
             .background(.clear)
 
             if ui.showQueue && hasTrack {
-                QueueRail().frame(width: 264)
+                QueueRail().frame(width: Self.queueWidth)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
@@ -98,6 +104,7 @@ struct ContentView: View {
             applyWindowChrome(w)
             applyWindowSize(w)
         })
+
         // Home feed is cached in HomeStore — re-personalize it on sign-in/out.
         .onChange(of: auth.isAuthenticated) { _, _ in
             Task { await HomeStore.shared.refresh() }
@@ -172,6 +179,9 @@ struct ContentView: View {
     // .windowResizability(.contentMinSize) would derive the minimum from the
     // content subtree's own computed size and override it.
 
+    static let sidebarWidth: CGFloat = 189
+    static let queueWidth: CGFloat = 264
+
     private static let appMinSize = NSSize(width: RiftWindow.minSize.width,
                                            height: RiftWindow.minSize.height)
     private static let onboardingSize = NSSize(width: RiftWindow.onboardingSize.width,
@@ -186,6 +196,7 @@ struct ContentView: View {
     /// styleMask rebuilds the window's theme frame (invalidating constraints).
     /// Doing that mid-layout is what throws.
     private func applyWindowChrome(_ w: NSWindow) {
+        Self.installSidebarToggle(w)   // idempotent; the window may already be full-size
         guard !w.styleMask.contains(.fullSizeContentView) else { return }
         DispatchQueue.main.async {
             w.styleMask.insert(.fullSizeContentView)
@@ -194,8 +205,49 @@ struct ContentView: View {
         }
     }
 
+    /// Sidebar toggle right of the traffic lights (Finder/Notes/Claude
+    /// convention). A titlebar accessory, so AppKit keeps it vertically aligned
+    /// with the window buttons at every titlebar height.
+    private static func installSidebarToggle(_ w: NSWindow) {
+        let id = NSUserInterfaceItemIdentifier("rift.sidebarToggle")
+        guard !w.titlebarAccessoryViewControllers.contains(where: { $0.identifier == id }) else { return }
+        let host = NSHostingView(rootView: SidebarToggleButton().environmentObject(AppServices.shared.ui))
+        host.frame = NSRect(x: 0, y: 0, width: 40, height: 28)
+        let vc = NSTitlebarAccessoryViewController()
+        vc.identifier = id
+        vc.view = host
+        vc.layoutAttribute = .leading
+        w.addTitlebarAccessoryViewController(vc)
+    }
+
+    /// Grow rightward, shifting left at the screen edge. Full screen is
+    /// always wide enough, so it's left alone.
+    private func grow(_ w: NSWindow, toWidth width: CGFloat) {
+        guard !w.styleMask.contains(.fullScreen) else { return }
+        var f = w.frame
+        f.size.width += width - w.contentLayoutRect.width
+        if let vis = w.screen?.visibleFrame {
+            f.size.width = min(f.width, vis.width)
+            if f.maxX > vis.maxX { f.origin.x = max(vis.minX, vis.maxX - f.width) }
+        }
+        w.setFrame(f, display: true, animate: true)
+    }
+
+    /// Narrowest centre column the pages are designed for (875 − sidebar).
+    private static let centreMinWidth = appMinSize.width - sidebarWidth
+
+    /// The window floor follows what's on screen: the queue rail adds its
+    /// width, a collapsed sidebar gives its width back. So the centre column
+    /// can never be squeezed below the width that breaks page layouts.
+    private var liveMinSize: NSSize {
+        let width = Self.centreMinWidth
+            + (ui.sidebarCollapsed ? 0 : Self.sidebarWidth)
+            + (ui.showQueue && hasTrack ? Self.queueWidth : 0)
+        return NSSize(width: max(Self.appMinSize.width, width), height: Self.appMinSize.height)
+    }
+
     private func applyWindowSize(_ w: NSWindow) {
-        let target = hasOnboarded ? Self.appMinSize : Self.onboardingSize
+        let target = hasOnboarded ? liveMinSize : Self.onboardingSize
         guard w.contentMinSize != target else { return }   // idempotent: this runs on every update
 
         // WindowAccessor.updateNSView calls this synchronously from inside
@@ -206,7 +258,12 @@ struct ContentView: View {
         DispatchQueue.main.async {
             w.contentMinSize = target
 
-            if !self.hasOnboarded {
+            if self.hasOnboarded, w.contentLayoutRect.width > Self.onboardingSize.width + 40,
+               w.contentLayoutRect.width < target.width {
+                // Floor rose past the current size (queue opened, sidebar shown):
+                // AppKit doesn't enforce a new minimum on an open window, so grow it.
+                self.grow(w, toWidth: target.width)
+            } else if !self.hasOnboarded {
                 w.setContentSize(Self.onboardingSize)
                 w.center()
             } else if w.contentLayoutRect.width <= Self.onboardingSize.width + 40 {
@@ -219,5 +276,27 @@ struct ContentView: View {
                 w.center()
             }
         }
+    }
+}
+
+private struct SidebarToggleButton: View {
+    @EnvironmentObject var ui: UIState
+    @State private var hover = false
+
+    var body: some View {
+        Button { ui.toggleSidebar() } label: {
+            Image(systemName: "sidebar.left")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.secondary)
+                .frame(width: 30, height: 24)
+                .background(RoundedRectangle(cornerRadius: 6).fill(.white.opacity(hover ? 0.1 : 0)))
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .help(ui.sidebarCollapsed ? "Show Sidebar (⌃⌘S)" : "Hide Sidebar (⌃⌘S)")
+        .accessibilityLabel(ui.sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar")
+        .padding(.leading, 6)
+        .frame(maxHeight: .infinity)
     }
 }

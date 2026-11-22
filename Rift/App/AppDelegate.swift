@@ -16,6 +16,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installCrashLogging()
 
+        #if DEBUG
+        // Marketing screenshots: open the canvas previews as windows and skip the notch/menu-bar shells.
+        if Showcase.isRequested { Showcase.open(); return }
+        #endif
+
         let s = AppServices.shared
         menuBar = MenuBarController(player: s.player)
         notch = NotchController(player: s.player)

@@ -5,7 +5,7 @@
 // (the player panel is a separate NSWindow, so it can't share ContentView's
 // @State). Currently just the Queue-rail toggle.
 
-import Foundation
+import SwiftUI
 
 @MainActor
 final class UIState: ObservableObject {
@@ -15,4 +15,12 @@ final class UIState: ObservableObject {
     /// panel is a separate NSWindow, so it would otherwise sit on top of the
     /// welcome flow — a restored (paused) track is enough to summon it.
     @Published var onboarding = false
+    /// Left nav rail hidden (titlebar button / ⌃⌘S). Persisted across launches.
+    @Published var sidebarCollapsed = UserDefaults.standard.bool(forKey: "sidebarCollapsed") {
+        didSet { UserDefaults.standard.set(sidebarCollapsed, forKey: "sidebarCollapsed") }
+    }
+
+    func toggleSidebar() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { sidebarCollapsed.toggle() }
+    }
 }

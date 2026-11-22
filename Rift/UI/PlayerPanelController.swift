@@ -105,7 +105,8 @@ final class PlayerPanelController {
         // fires in willSet, so reading ui.showQueue now gives the OLD value; hop to
         // the next runloop tick so it's committed, then read it live (same path the
         // resize handler uses, which is always correct). Animate so the shift glides.
-        ui.$showQueue
+        ui.$showQueue.map { _ in () }
+            .merge(with: ui.$sidebarCollapsed.map { _ in () })
             .sink { [weak self] _ in
                 DispatchQueue.main.async { self?.reposition(animated: true) }
             }
@@ -222,8 +223,9 @@ final class PlayerPanelController {
         // queue rail. Pill = 80% of that, capped, centered inside — never over
         // either sidebar. Reads ui.showQueue live (callers defer past willSet).
         let rightInset = (ui.showQueue && player.track != nil) ? queueWidth : 0
-        let contentX = f.minX + sidebarWidth
-        let contentW = max(f.width - sidebarWidth - rightInset, 0)
+        let leftInset = ui.sidebarCollapsed ? 0 : sidebarWidth
+        let contentX = f.minX + leftInset
+        let contentW = max(f.width - leftInset - rightInset, 0)
         let width = min(maxPillWidth, max(contentW * contentFraction, 260))
         let x = contentX + (contentW - width) / 2
         // The pill's bottom edge hangs BELOW the window (panel extends up by the

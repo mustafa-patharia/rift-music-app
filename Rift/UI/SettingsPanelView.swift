@@ -22,6 +22,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
 }
 
 struct SettingsPanelView: View {
+    @AppStorage(NowPlayingStyle.storageKey) private var nowPlayingStyle: NowPlayingStyle = .artwork
     @EnvironmentObject var mode: AppModeController
     @EnvironmentObject var player: PlayerController
     @EnvironmentObject var auth: AuthController
@@ -178,6 +179,13 @@ struct SettingsPanelView: View {
             row("Autoplay", subtitle: "When the queue ends, keep playing similar songs") {
                 Toggle("", isOn: $player.autoplay)
                     .toggleStyle(.switch).labelsHidden().controlSize(.small)
+            }
+            divider
+            row("Now Playing style", subtitle: "Cover art, or a spinning record on a turntable") {
+                Picker("", selection: $nowPlayingStyle) {
+                    ForEach(NowPlayingStyle.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented).labelsHidden().frame(width: 220)
             }
         }
     }
