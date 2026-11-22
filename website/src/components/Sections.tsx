@@ -137,7 +137,7 @@ export function Features() {
         <article className="cell span4 reveal">
           <div className="motif lyric-lines" aria-hidden><span /><span /><span /><span /></div>
           <h3>Lyrics, translated on-device</h3>
-          <p>Built-in synced lyrics — and optional local AI (Apple Intelligence or Ollama) that transliterates and translates them. Nothing leaves your Mac.</p>
+          <p>Synced lyrics that keep time — and optional AI that rewrites them in a script you can read, same words, so you can sing along. On-device with Apple Intelligence, or bring your own API key.</p>
         </article>
         <article className="cell span4 reveal">
           <div className="motif chart-mini" aria-hidden><i style={{ height: "40%" }} /><i style={{ height: "75%" }} /><i style={{ height: "55%" }} /><i style={{ height: "100%" }} /><i style={{ height: "65%" }} /></div>

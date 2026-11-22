@@ -63,7 +63,7 @@ One library. One queue. One beautiful player. And **more interesting things to c
 | 🌟 **Real recommendations** | Home feed, radio & autoplay, *"More like…"* and *"Because you liked…"* seeded by what you actually play. |
 | 🏝 **A living notch** | A Dynamic Island for album art + equalizer; hover to a full transport. |
 | ⬇ **Offline, properly** | Download tracks and keep them; streams cache for instant replay. |
-| 🎤 **Lyrics + on-device AI** | Synced lyrics; optional local AI (Apple Intelligence / Ollama) transliterates & translates. |
+| 🎤 **Lyrics + AI sing-along** | Synced lyrics; optional AI (on-device Apple Intelligence, or your own API key) rewrites them in a script you can read — same words, so you can sing along — or translates to English. |
 | 📊 **Your listening, charted** | Top songs, top artists, listening clocks — computed and stored **locally only**. |
 | 🔒 **Private by default** | No telemetry, no analytics, no cloud middleman. Credentials live in the Keychain. |
 

@@ -81,7 +81,7 @@ struct OnboardingView: View {
         case 3:
             Page(art: { LyricsArt(reduceMotion: reduceMotion) },
                  title: "Lyrics that make sense",
-                 body: "Read along in the full-screen player. Any script romanizes so you can sing along, and any language translates to English — processed on your Mac, off by default.")
+                 body: "Read along in the full-screen player. Sing along in a script you can read — same words, never translated — or translate to English — processed on your Mac, off by default.")
         default:
             SignInPage(auth: auth, onDone: onDone)
         }

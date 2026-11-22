@@ -38,19 +38,11 @@ struct SettingsPanelView: View {
     @State private var confirmClearAudio = false
     @State private var confirmClearHistory = false
 
-    // Ollama panel state
-    @State private var ollamaUp = false
-    @State private var installedModels: [String] = []
-    @State private var pulling: String?
-    @State private var pullProgress: Double = 0
-    @State private var pullError: String?
-
-    /// Small local models suited to the app's tasks (transliteration etc.).
-    private static let curatedModels: [(id: String, name: String, info: String)] = [
-        ("llama3.2:3b", "Llama 3.2 3B", "Meta · ~2.0 GB"),
-        ("qwen2.5:3b", "Qwen 2.5 3B", "Alibaba · ~1.9 GB"),
-        ("gemma3:4b", "Gemma 3 4B", "Google · ~3.3 GB"),
-    ]
+    /// Typed key, cleared once saved to the Keychain — never persisted here.
+    @State private var cloudKeyDraft = ""
+    @State private var cloudModels: [String] = []
+    @State private var loadingCloudModels = false
+    @State private var cloudModelsError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -71,7 +63,6 @@ struct SettingsPanelView: View {
             .scrollContentBackground(.hidden)
         }
         .task { await refreshCounts() }
-        .task(id: ai.provider) { if ai.provider == .ollama { await refreshOllama() } }
         .confirmationDialog("Delete all downloads?", isPresented: $confirmClearAudio) {
             Button("Delete Downloads", role: .destructive) {
                 Task { await AudioFileCache.shared.clearDownloads(); await refreshCounts() }
@@ -243,7 +234,7 @@ struct SettingsPanelView: View {
             .padding(.horizontal, 16)
             .frame(minHeight: 44)
             if ai.provider == .apple { appleRow }
-            if ai.provider == .ollama { ollamaRows }
+            if ai.provider == .cloud { cloudRows }
         }
     }
 
@@ -311,9 +302,10 @@ struct SettingsPanelView: View {
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.08)))
 
             section("Developer") {
-                row("Built and maintained by one developer") {
+                row("Have an idea? Let's build it.",
+                    subtitle: "Rift's developer builds apps and products — bring yours") {
                     Link(destination: URL(string: "https://mustafapatharia.vercel.app")!) {
-                        Label("Meet the Developer", systemImage: "person.crop.circle")
+                        Label("Let's Connect", systemImage: "bubble.left.and.bubble.right")
                     }
                     .font(.caption)
                 }
@@ -376,11 +368,11 @@ struct SettingsPanelView: View {
     private var aiFooter: String {
         switch ai.provider {
         case .off:
-            return "AI is off. Nothing is downloaded or run until you pick a provider — everything stays on this Mac either way."
+            return "AI is off. Nothing runs until you pick a provider."
         case .apple:
             return "Uses the Apple Intelligence system model built into macOS — on-device, no download, no data leaves this Mac."
-        case .ollama:
-            return "Uses your local Ollama server (localhost only). Models are downloaded and run by Ollama on this Mac."
+        case .cloud:
+            return "Lyrics are sent to the provider you pick, using your own key. The key is stored in this Mac's Keychain."
         }
     }
 
@@ -398,72 +390,78 @@ struct SettingsPanelView: View {
         }
     }
 
-    @ViewBuilder private var ollamaRows: some View {
+    @ViewBuilder private var cloudRows: some View {
         divider
-        if !ollamaUp {
-            row("Ollama not detected",
-                subtitle: "Install and start Ollama, then refresh") {
-                HStack(spacing: 10) {
-                    Link("Get Ollama", destination: URL(string: "https://ollama.com/download/mac")!)
-                    Button("Refresh") { Task { await refreshOllama() } }
+        row("Provider", subtitle: ai.cloudPreset.note) {
+            HStack(spacing: 10) {
+                if let url = ai.cloudPreset.keyURL { Link("Get a key", destination: url).font(.caption) }
+                Picker("", selection: $ai.cloudPreset) {
+                    ForEach(CloudPreset.allCases) { Text($0.label).tag($0) }
+                }
+                .labelsHidden().frame(width: 180)
+            }
+        }
+        if ai.cloudPreset == .custom {
+            divider
+            row("API URL", subtitle: "OpenAI-compatible, ends before /chat/completions") {
+                TextField("https://…/v1", text: $ai.cloudBaseURL)
+                    .textFieldStyle(.roundedBorder).frame(width: 260)
+            }
+        }
+        divider
+        row("API key", subtitle: ai.hasCloudKey ? "Saved in Keychain" : "Not set") {
+            HStack(spacing: 8) {
+                SecureField(ai.hasCloudKey ? "••••••••  (replace)" : "Paste key", text: $cloudKeyDraft)
+                    .textFieldStyle(.roundedBorder).frame(width: 200)
+                    .onSubmit(saveCloudKey)
+                Button("Save", action: saveCloudKey).disabled(cloudKeyDraft.isEmpty)
+                if ai.hasCloudKey {
+                    Button("Remove", role: .destructive) { ai.setCloudKey("") }
                 }
             }
-        } else {
-            row("Model", subtitle: installedModels.isEmpty
-                    ? "No models installed — download one below"
-                    : "Runs locally via Ollama") {
-                Picker("", selection: $ai.ollamaModel) {
-                    Text("None").tag("")
-                    ForEach(installedModels, id: \.self) { Text($0).tag($0) }
+        }
+        divider
+        row("Model", subtitle: cloudModelsError ?? (ai.hasCloudKey ? nil : "Save a key to load models")) {
+            HStack(spacing: 8) {
+                if loadingCloudModels { ProgressView().controlSize(.small) }
+                Picker("", selection: $ai.cloudModel) {
+                    ForEach(cloudModelChoices, id: \.self) { Text($0).tag($0) }
                 }
-                .labelsHidden().frame(width: 220)
+                .labelsHidden().frame(width: 240)
+                .disabled(cloudModels.isEmpty)
+                Button { Task { await loadCloudModels() } } label: { Image(systemName: "arrow.clockwise") }
+                    .help("Reload models").disabled(!ai.hasCloudKey || loadingCloudModels)
             }
-            ForEach(Self.curatedModels.filter { m in !installedModels.contains(m.id) }, id: \.id) { m in
-                divider
-                row(m.name, subtitle: m.info) {
-                    if pulling == m.id {
-                        HStack(spacing: 8) {
-                            ProgressView(value: pullProgress).frame(width: 110)
-                            Text("\(Int(pullProgress * 100))%")
-                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        }
-                    } else {
-                        Button("Download") { pull(m.id) }
-                            .disabled(pulling != nil)
-                    }
-                }
+        }
+        .task(id: "\(ai.cloudPreset.rawValue)|\(ai.cloudBaseURL)|\(ai.hasCloudKey)") { await loadCloudModels() }
+    }
+
+    /// Saved model stays listed even before the fetch returns.
+    private var cloudModelChoices: [String] {
+        cloudModels.contains(ai.cloudModel) || ai.cloudModel.isEmpty ? cloudModels : [ai.cloudModel] + cloudModels
+    }
+
+    private func loadCloudModels() async {
+        // Clear the last provider's error first — it isn't about this one.
+        cloudModelsError = nil
+        guard ai.hasCloudKey, !ai.cloudBaseURL.isEmpty else { cloudModels = []; return }
+        loadingCloudModels = true; defer { loadingCloudModels = false }
+        do {
+            cloudModels = try await CloudAI.models(baseURL: ai.cloudBaseURL)
+            cloudModelsError = cloudModels.isEmpty ? "No chat models offered for this key" : nil
+            if !cloudModels.contains(ai.cloudModel), let m = CloudAI.preferred(in: cloudModels) {
+                ai.cloudModel = m
             }
-            if let pullError {
-                divider
-                Text(pullError).font(.caption).foregroundStyle(.red)
-                    .padding(.horizontal, 16).padding(.vertical, 6)
-            }
+        } catch {
+            cloudModels = []
+            cloudModelsError = error.localizedDescription
         }
     }
 
-    private func refreshOllama() async {
-        ollamaUp = await OllamaClient.running()
-        installedModels = ollamaUp ? ((try? await OllamaClient.models()) ?? []) : []
-        // Selected model vanished from Ollama → deselect so isReady is honest.
-        if !ai.ollamaModel.isEmpty && ollamaUp && !installedModels.contains(ai.ollamaModel) {
-            ai.ollamaModel = ""
-        }
-    }
-
-    private func pull(_ model: String) {
-        pulling = model; pullProgress = 0; pullError = nil
-        Task {
-            do {
-                try await OllamaClient.pull(model) { p in
-                    Task { @MainActor in pullProgress = p }
-                }
-                await refreshOllama()
-                if ai.ollamaModel.isEmpty { ai.ollamaModel = model }   // auto-select first model
-            } catch {
-                pullError = error.localizedDescription
-            }
-            pulling = nil
-        }
+    private func saveCloudKey() {
+        guard !cloudKeyDraft.isEmpty else { return }
+        ai.setCloudKey(cloudKeyDraft)
+        cloudKeyDraft = ""
     }
 
     // MARK: grouped-section scaffolding (HIG: header outside, footer caption)

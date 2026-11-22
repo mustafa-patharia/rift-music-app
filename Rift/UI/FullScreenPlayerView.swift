@@ -21,11 +21,14 @@ struct FullScreenPlayerView: View {
     @State private var synced: [LyricLine]?
     @State private var lyricsState: LyricsState = .idle
     // AI lyric views (local model via AI facade) — cached per track.
-    private enum LyricsDisplay { case original, romanized, english }
+    private enum LyricsDisplay: Equatable { case original, script(LyricScript), english }
     @State private var display: LyricsDisplay = .original
-    @State private var romanized: String?
-    @State private var english: String?
+    /// Sing-along rewrites, line-for-line with `sourceLines`, per script.
+    @State private var scripted: [LyricScript: [String]] = [:]
+    @State private var english: [String]?
     @State private var aiWorking = false
+    /// Last AI failure, shown under the lyrics header until the next try.
+    @State private var aiError: String?
     /// Pointer offset from the poster's centre, -0.5…0.5 per axis. Drives the
     /// parallax tilt; .zero is flat.
     @State private var tilt: CGSize = .zero
@@ -284,17 +287,24 @@ struct FullScreenPlayerView: View {
                 case .none, .idle:
                     Text("No lyrics available").foregroundStyle(.secondary).padding(.top, 40)
                 case .loaded:
-                    if aiWorking {
-                        // Writing-Tools-style shimmer while the model generates.
-                        AISkeletonLines().padding(.top, 10)
-                    } else if display == .original, let lines = synced {
-                        SyncedLyricsView(lines: lines, time: player.currentTime) { player.seek(to: $0) }
-                    } else {
-                        ScrollView(showsIndicators: false) {
-                            Text(displayedLyrics)
-                                .font(.title3).foregroundStyle(.white.opacity(0.9))
-                                .lineSpacing(6).frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.bottom, 40)
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let aiError {
+                            Label(aiError, systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption).foregroundStyle(.orange)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        if aiWorking {
+                            // Writing-Tools-style shimmer while the model generates.
+                            AISkeletonLines().padding(.top, 10)
+                        } else if let lines = displayedSynced {
+                            SyncedLyricsView(lines: lines, time: player.currentTime) { player.seek(to: $0) }
+                        } else {
+                            ScrollView(showsIndicators: false) {
+                                Text(displayedLyrics)
+                                    .font(.title3).foregroundStyle(.white.opacity(0.9))
+                                    .lineSpacing(6).frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.bottom, 40)
+                            }
                         }
                     }
                 }
@@ -305,72 +315,126 @@ struct FullScreenPlayerView: View {
     private var displayedLyrics: String {
         switch display {
         case .original:  return lyrics ?? ""
-        case .romanized: return romanized ?? lyrics ?? ""
-        case .english:   return english ?? lyrics ?? ""
+        case .script(let s): return scripted[s]?.joined(separator: "\n") ?? lyrics ?? ""
+        case .english:   return english?.joined(separator: "\n") ?? lyrics ?? ""
         }
     }
 
-    // Language menu — AI lyric views (all on the local model, per Settings):
-    // romanization for any non-Latin script (Hindi, Korean, Chinese, Russian,
-    // Malayalam, …), English translation for any non-English lyrics. Hidden
-    // until an AI provider is enabled in Settings.
+    /// The lines a sing-along rewrite maps onto: synced lines when timed, so
+    /// the rewrite keeps every timestamp; otherwise the plain text's lines.
+    private var sourceLines: [String] {
+        synced?.map(\.text) ?? (lyrics ?? "").components(separatedBy: "\n")
+    }
+
+    /// Synced lines in the current view's script; nil → show static text.
+    private var displayedSynced: [LyricLine]? {
+        guard let lines = synced else { return nil }
+        switch display {
+        case .original: return lines
+        case .english: return aligned(english, to: lines)
+        case .script(let s): return aligned(scripted[s], to: lines)
+        }
+    }
+
+    private func aligned(_ texts: [String]?, to lines: [LyricLine]) -> [LyricLine]? {
+        guard let texts, texts.count == lines.count else { return nil }
+        return zip(lines, texts).map { LyricLine(time: $0.time, text: $1) }
+    }
+
+    // AI lyric controls (local model, per Settings), hidden until a provider
+    // is enabled:
+    //  • mic — "Sing along": the same words rewritten in a script the
+    //    listener reads (phonetic, never translated)
+    //  • translate — English meaning, only for non-English lyrics
     @ViewBuilder private var lyricsAIMenu: some View {
-        if lyricsState == .loaded, let text = lyrics, ai.isReady,
-           AI.hasNonLatinScript(text) || AI.isNonEnglish(text) {
-            Menu {
-                Button { display = .original } label: {
-                    display == .original ? Label("Original", systemImage: "checkmark") : Label("Original", systemImage: "")
-                }
-                if AI.hasNonLatinScript(text) {
-                    Button { switchTo(.romanized, text) } label: {
-                        display == .romanized ? Label("Romanized", systemImage: "checkmark") : Label("Romanized", systemImage: "")
+        if lyricsState == .loaded, let text = lyrics, ai.isReady {
+            let source = LyricScript.dominant(in: text)
+            let singing: Bool = { if case .script = display { return true }; return false }()
+            HStack(spacing: 8) {
+                Menu {
+                    Section("Sing along in") {
+                        Button { display = .original } label: { check("Original script", !singing) }
+                        ForEach(LyricScript.allCases.filter { !$0.isSource(of: source) }) { s in
+                            Button { switchTo(.script(s)) } label: { check(s.label, display == .script(s)) }
+                        }
                     }
+                } label: {
+                    aiCapsule("music.mic", active: singing)
                 }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                // borderlessButton drops the label's background — redraw it here.
+                .frame(width: 34, height: 26)
+                .background(.ultraThinMaterial, in: .capsule)
+                .help("Sing along — same words in a script you can read")
+                .accessibilityLabel("Sing along script")
+
                 if AI.isNonEnglish(text) {
-                    Button { switchTo(.english, text) } label: {
-                        display == .english ? Label("English translation", systemImage: "checkmark") : Label("English translation", systemImage: "")
+                    Button { display == .english ? (display = .original) : switchTo(.english) } label: {
+                        aiCapsule("translate", active: display == .english)
                     }
+                    .buttonStyle(.plain)
+                    .help(display == .english ? "Show original lyrics" : "Translate to English")
+                    .accessibilityLabel("English translation")
                 }
-            } label: {
-                // Icon never disappears — it pulses while the model works.
-                Image(systemName: "translate")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(aiWorking || display != .original
-                                     ? AnyShapeStyle(.tint) : AnyShapeStyle(.white))
-                    .symbolEffect(.pulse, options: .repeating, isActive: aiWorking)
-                    .frame(width: 34, height: 26)
-                    .background(.ultraThinMaterial, in: .capsule)
-                    .contentShape(.capsule)
             }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .disabled(aiWorking)
-            .help("Lyrics language")
         }
     }
 
-    private func switchTo(_ target: LyricsDisplay, _ text: String) {
+    // Icon never disappears — it pulses while the model works.
+    private func aiCapsule(_ symbol: String, active: Bool) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(active ? AnyShapeStyle(.tint) : AnyShapeStyle(.white))
+            .symbolEffect(.pulse, options: .repeating, isActive: aiWorking)
+            .frame(width: 34, height: 26)
+            .background(.ultraThinMaterial, in: .capsule)
+            .contentShape(.capsule)
+    }
+
+    private func check(_ title: String, _ on: Bool) -> Label<Text, Image> {
+        Label(title, systemImage: on ? "checkmark" : "")
+    }
+
+    private func switchTo(_ target: LyricsDisplay) {
         // Cached → instant flip; otherwise run the model once and cache.
-        if (target == .romanized && romanized != nil) || (target == .english && english != nil) {
-            display = target; return
+        let cached: Bool
+        switch target {
+        case .script(let s): cached = scripted[s] != nil
+        case .english: cached = english != nil
+        case .original: cached = true
         }
-        aiWorking = true
+        if cached { display = target; return }
+        guard let trackId = player.track?.id else { return }
+        let lines = sourceLines
+        aiWorking = true; aiError = nil
         Task {
             defer { aiWorking = false }
-            switch target {
-            case .romanized:
-                if let r = try? await AI.romanize(text) { romanized = r; display = .romanized }
-            case .english:
-                if let r = try? await AI.translate(text) { english = r; display = .english }
-            case .original: break
+            do {
+                switch target {
+                case .script(let s):
+                    let r = try await AI.transliterate(lines, into: s)
+                    guard player.track?.id == trackId else { return }
+                    scripted[s] = r
+                case .english:
+                    let r = try await AI.translate(lines)
+                    guard player.track?.id == trackId else { return }
+                    english = r
+                case .original: break
+                }
+                display = target
+            } catch {
+                guard player.track?.id == trackId else { return }
+                aiError = "Couldn't reach the AI model — \(error.localizedDescription)"
             }
         }
     }
 
     private func loadLyrics() async {
         guard let track = player.track, URL(string: track.id)?.isFileURL != true else {
-            lyricsState = .none; lyrics = nil; synced = nil; romanized = nil; english = nil; display = .original; return
+            lyricsState = .none; lyrics = nil; synced = nil; scripted = [:]; english = nil; aiError = nil; display = .original; return
         }
-        romanized = nil; english = nil; display = .original
+        scripted = [:]; english = nil; aiError = nil; display = .original
         lyricsState = .loading; lyrics = nil; synced = nil
         // Every source in order (YTM timed → LRCLIB → official audio → plain).
         let found = await SyncedLyrics.resolve(track,
