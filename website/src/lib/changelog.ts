@@ -11,9 +11,43 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "1.1.0",
+    date: "2026-11-23",
+    current: true,
+    headline: "Rift 1.1 — listen together.",
+    blurb:
+      "Music is better with people. Rift 1.1 lets you start a room, share a code, and have friends anywhere hear exactly what you play — in sync, end-to-end encrypted, no account or server. Plus a desktop widget, a Dynamic Island on every Mac, and lyrics you can sing in any script.",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Together — start a listening room and share its code; friends anywhere hear what you play, in sync. Everyone floats as a profile bubble pulled onto a spinning record, with emoji reactions and a live activity feed. Nearby finds Macs running Rift on the same Wi-Fi.",
+          "Desktop widget — small and medium Now Playing widgets with play/pause and skip.",
+          "A Dynamic Island on every Mac — no notch? Rift draws a slim island at the top of the screen that blooms into the full player on hover.",
+          "Synced lyrics — timed lyrics from YouTube Music, then LRCLIB; the active line glows and clicking a line seeks to it.",
+          "Sing along in any script — optional AI rewrites lyrics into the script you read, same words, still synced.",
+          "Bring your own AI — Apple Intelligence on-device, or your own key for Gemini, Groq, OpenAI, Anthropic, xAI, DeepSeek, Mistral, Cerebras, Together AI, OpenRouter or any OpenAI-compatible API.",
+          "Record player Now Playing style, custom playlist covers, a collapsible sidebar and a new welcome tour.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Ollama removed in favour of Apple Intelligence and API keys; lyrics translation removed, sing-along stays.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Card hover zoom no longer clipped; pages no longer squeezed when the queue is open.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.0.1",
     date: "2026-08-28",
-    current: true,
+    current: false,
     sections: [
       {
         label: "Fixed",

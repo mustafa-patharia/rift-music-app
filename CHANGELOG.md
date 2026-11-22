@@ -5,6 +5,47 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions follow
 [SemVer](https://semver.org/). This file mirrors the on-site changelog at
 `/changelog`.
 
+## [1.1.0] — 2026-11-23
+
+### Rift 1.1 — listen together.
+
+### Added
+
+- **Together.** Start a listening room and share its code: friends anywhere
+  hear exactly what you play, in sync. Everyone appears as a profile bubble
+  pulled onto a spinning record, with emoji reactions and a live activity
+  feed. Rooms are end-to-end encrypted and need no account or server.
+  **Nearby** finds Macs running Rift on the same Wi-Fi for one-tap send and
+  listen-along.
+- **Desktop widget.** Small and medium Now Playing widgets with play/pause
+  and skip that work right from the desktop.
+- **A Dynamic Island on every Mac.** Macs without a notch get a slim island
+  at the top of the screen that blooms into the full player on hover.
+- **Synced lyrics everywhere.** Timed lyrics from YouTube Music, then LRCLIB;
+  the active line glows, the rest fade, and clicking a line seeks to it.
+- **Sing along in any script.** Optional AI rewrites lyrics into the script
+  you read (12 scripts, same words, still synced).
+- **Bring your own AI.** Apple Intelligence on-device, or your own key for
+  Gemini, Groq, OpenAI, Anthropic, xAI, DeepSeek, Mistral, Cerebras,
+  Together AI, OpenRouter or any OpenAI-compatible API. Keys live in the
+  Keychain.
+- **Record player.** A Now Playing style with a spinning record and a
+  tonearm that drops on while playing.
+- **Custom playlist covers** and a new Liked Music cover.
+- **Collapsible sidebar** (Ctrl-Cmd-S), remembered across launches.
+- **A new welcome tour** — replay it any time from Settings › About.
+
+### Changed
+
+- Ollama support removed in favour of Apple Intelligence and API keys.
+- Lyrics translation removed; sing-along transliteration stays.
+
+### Fixed
+
+- Hover zoom on cards no longer clipped.
+- Pages no longer squeezed when the queue is open; narrow full player
+  stacks lyrics instead of overlapping the artwork.
+
 ## [1.0.1] — 2026-08-28
 
 ### Fixed
@@ -55,5 +96,6 @@ Applications and sign in — or don't. It works either way.
   material the system provides. One app, no second-class Macs.
 - **A first-run onboarding flow** that takes about fifteen seconds.
 
+[1.1.0]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.1.0
 [1.0.1]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.1
 [1.0.0]: https://github.com/MustafaPatharia/rift-music-app/releases/tag/v1.0.0
