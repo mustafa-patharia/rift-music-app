@@ -35,7 +35,12 @@ struct Sidebar: View {
             }
 
             Spacer(minLength: 12)
+            #if DEBUG
+            // Marketing captures never show whose account is signed in.
+            if !Showcase.isRequested { profileChip }
+            #else
             profileChip
+            #endif
         }
         // Same shared top line as the home hero and the queue rail header
         // (title-bar safe area + 16).

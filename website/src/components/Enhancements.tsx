@@ -57,6 +57,28 @@ export default function Enhancements() {
       reveals.forEach((el) => io.observe(el));
     }
 
+    /* ---- nav Download shows only once the hero's Download is off screen ---- */
+    const heroEl = document.querySelector(".hero");
+    const heroIO = heroEl && "IntersectionObserver" in window
+      ? new IntersectionObserver(([e]) => root.classList.toggle("past-hero", !e.isIntersecting), { rootMargin: "-120px 0px 0px 0px" })
+      : null;
+    if (heroEl && heroIO) heroIO.observe(heroEl); else root.classList.add("past-hero");
+
+    /* ---- pause all looping motion (WCAG 2.2.2); remembered per visitor ---- */
+    const motionBtn = document.getElementById("motion-toggle");
+    const setStill = (on: boolean) => {
+      root.classList.toggle("still", on);
+      motionBtn?.setAttribute("aria-pressed", String(on));
+      if (motionBtn) motionBtn.textContent = on ? "Play animations" : "Pause animations";
+    };
+    try { setStill(localStorage.getItem("rift-still") === "1"); } catch { setStill(false); }
+    const onMotion = () => {
+      const on = !root.classList.contains("still");
+      setStill(on);
+      try { localStorage.setItem("rift-still", on ? "1" : "0"); } catch {}
+    };
+    motionBtn?.addEventListener("click", onMotion);
+
     /* ---- top scrubber ↔ scroll ---- */
     const scrub = document.querySelector<HTMLElement>(".scrubber");
     let ticking = false;
@@ -74,50 +96,6 @@ export default function Enhancements() {
 
     const cleanups: Array<() => void> = [];
 
-    /* ---- album-poster parallax (gradient tiles; asset-free "alive" layer) ---- */
-    if (!reduced) {
-      const touch = matchMedia("(hover: none)").matches;
-      const N = touch ? 3 : 6;
-      const grads = [
-        "linear-gradient(135deg,#ff375f,#a83279)", "linear-gradient(135deg,#ffb347,#ff2f3a)",
-        "linear-gradient(135deg,#7b2ff7,#ff375f)", "linear-gradient(135deg,#4a2622,#24110f)",
-        "linear-gradient(135deg,#ff6b4a,#7a1f2a)", "linear-gradient(135deg,#2c1230,#101c38)",
-      ];
-      const field = document.createElement("div");
-      field.className = "poster-field"; field.setAttribute("aria-hidden", "true");
-      const docH = document.documentElement.scrollHeight;
-      type P = { el: HTMLElement; depth: number; docY: number; rot: number };
-      const posters: P[] = [];
-      for (let i = 0; i < N; i++) {
-        const el = document.createElement("div");
-        el.className = "poster";
-        const depth = 0.15 + (i % 4) * 0.13;
-        const w = 80 + Math.random() * 150;
-        el.style.left = (Math.random() * 84) + "%";
-        el.style.width = w + "px"; el.style.height = w + "px";
-        el.style.opacity = String(0.10 + depth * 0.22);
-        el.style.background = grads[i % grads.length];
-        field.appendChild(el);
-        posters.push({ el, depth, docY: 760 + Math.random() * Math.max(400, docH - 1400), rot: -22 + Math.random() * 44 });
-      }
-      document.body.appendChild(field);
-      let sy = scrollY, mx = 0, my = 0, q = false;
-      const draw = () => {
-        q = false;
-        for (const s of posters) {
-          const ty = s.docY - sy * (1 - s.depth) + my * s.depth * 0.03;
-          const tx = mx * s.depth * 0.04;
-          s.el.style.transform = `translate3d(${tx}px,${ty}px,0) rotate(${s.rot}deg)`;
-        }
-      };
-      const req = () => { if (!q) { q = true; requestAnimationFrame(draw); } };
-      const onScroll = () => { sy = scrollY; req(); };
-      const onMove = (e: MouseEvent) => { mx = e.clientX - innerWidth / 2; my = e.clientY - innerHeight / 2; req(); };
-      addEventListener("scroll", onScroll, { passive: true });
-      if (!touch) addEventListener("mousemove", onMove, { passive: true });
-      draw();
-      cleanups.push(() => { removeEventListener("scroll", onScroll); removeEventListener("mousemove", onMove); field.remove(); });
-    }
 
     /* ---- GSAP: word light-up, tilt, magnetic ---- */
     let ctx: gsap.Context | undefined;
@@ -199,6 +177,8 @@ export default function Enhancements() {
     })();
 
     return () => {
+      heroIO?.disconnect();
+      motionBtn?.removeEventListener("click", onMotion);
       btn?.removeEventListener("click", onTheme);
       sys.removeEventListener("change", relabel);
       removeEventListener("scroll", reqScrub);

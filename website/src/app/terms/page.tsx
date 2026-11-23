@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Nav, Scrubber, Footer } from "@/components/Chrome";
 
 export const metadata: Metadata = {
-  title: "Terms of Use — Rift Music App",
+  title: "Terms of Use | Rift Music App",
   description: "Terms of Use for Rift Music App, the native Mac YouTube Music client.",
   alternates: { canonical: "/terms" },
 };

@@ -3,7 +3,7 @@ import { Nav, Scrubber, Footer } from "@/components/Chrome";
 import { CHANGELOG } from "@/lib/changelog";
 
 export const metadata: Metadata = {
-  title: "Changelog — Rift Music App",
+  title: "Changelog | Rift Music App",
   description: "What's new in Rift Music App, the native Mac YouTube Music client.",
   alternates: { canonical: "/changelog" },
 };

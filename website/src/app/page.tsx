@@ -1,16 +1,16 @@
 import { Nav, Scrubber, Footer } from "@/components/Chrome";
 import {
   Hero, ProofBand, Statement, ProductShot, Features,
-  Notch, Native, Privacy, MoreToCome, Install, Support,
+  Notch, Native, Privacy, MoreToCome, Install,
 } from "@/components/Sections";
+import Together from "@/components/Together";
+import SoundField from "@/components/SoundField";
 
 export default function Page() {
   return (
     <>
       <div className="aurora" aria-hidden>
-        <div className="glow-wrap wrap-a"><div className="glow glow-a" /></div>
-        <div className="glow-wrap wrap-b"><div className="glow glow-b" /></div>
-        <div className="glow-wrap wrap-c"><div className="glow glow-c" /></div>
+        <SoundField />
       </div>
 
       <Nav />
@@ -22,13 +22,13 @@ export default function Page() {
         <Statement />
         <ProductShot />
         <Features />
+        <Together />
         <hr className="fault rail" />
         <Notch />
         <Native />
         <Privacy />
         <MoreToCome />
         <Install />
-        <Support />
       </main>
 
       <Footer />

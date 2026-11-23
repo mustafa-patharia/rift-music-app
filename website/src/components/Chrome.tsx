@@ -23,8 +23,8 @@ export function Nav() {
           <SunMoon />
         </button>
         <div className="chai-wrap">
-          <button className="pn-cta pn-cta-chai" type="button" aria-label="Buy me a chai" aria-haspopup="true">
-            <Coffee /> <span className="chai-text">Support</span>
+          <button className="pn-icon pn-chai" type="button" aria-label="Support the project: buy me a chai" title="Support" aria-haspopup="true">
+            <Coffee />
           </button>
           <div className="chai-popover">
             <Image src={asset("/img/qr-chai.png")} alt="Buy me a chai QR Code" width={160} height={160} className="chai-qr" style={{ width: 'auto', height: 'auto' }} />
@@ -33,7 +33,7 @@ export function Nav() {
             </a>
           </div>
         </div>
-        <a className="pn-cta" data-release-link href={RELEASE}>
+        <a className="pn-cta pn-download" data-release-link href={RELEASE}>
           <Download /> Download
         </a>
       </div>
@@ -84,12 +84,13 @@ export function Footer() {
         <Link href="/terms">Terms</Link>
         <a href="https://mustafapatharia.vercel.app" target="_blank" rel="noreferrer">Meet the Developer</a>
       </div>
-      <p className="release-meta">GPL-3.0 — free as in freedom · <span className="release-version">{REL_VERSION}</span></p>
+      <button className="footer-motion" id="motion-toggle" type="button" aria-pressed="false">Pause animations</button>
+      <p className="release-meta">GPL-3.0, free as in freedom · <span className="release-version">{REL_VERSION}</span></p>
       <p className="disclaimer">
-        Rift Music App is an independent open-source project — not affiliated with, endorsed by, or connected to
+        Rift Music App is an independent open-source project, not affiliated with, endorsed by, or connected to
         Google LLC, YouTube, or any music service it connects to. All trademarks belong to their owners.
         No ads, no resale, no bundled credentials; downloading content may conflict with a service&rsquo;s
-        terms — use responsibly where permitted.
+        terms, so use it responsibly where permitted.
       </p>
     </footer>
   );

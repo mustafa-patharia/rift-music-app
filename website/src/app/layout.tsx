@@ -19,9 +19,9 @@ const grotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rift-music-app.vercel.app"),
-  title: "Rift Music App — the Mac-native YouTube Music client",
+  title: "Rift Music App: a native Mac app for YouTube Music",
   description:
-    "Rift Music App is a beautiful, fully native macOS YouTube Music client. A Dynamic Island for your music, offline downloads, on-device lyrics, and local-only stats — the YouTube Music app the Mac never had.",
+    "Rift Music App is a free, open-source, native macOS app for YouTube Music: a Dynamic Island on every Mac, listening rooms with friends, a desktop widget, sing-along lyrics, offline downloads and local-only stats.",
   icons: {
     icon: [
       { url: asset("/brand/favicon-32.png"), sizes: "32x32", type: "image/png" },
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   keywords: ["Rift Music App", "YouTube Music", "macOS", "Mac music player", "SwiftUI", "Dynamic Island", "native"],
   applicationName: "Rift Music App",
   openGraph: {
-    title: "Rift Music App — the Mac-native YouTube Music client",
+    title: "Rift Music App: a native Mac app for YouTube Music",
     description: "All your music. One native Mac player.",
     type: "website",
     url: "https://rift-music-app.vercel.app",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rift Music App — the Mac-native YouTube Music client",
+    title: "Rift Music App: a native Mac app for YouTube Music",
     description: "All your music. One native Mac player.",
     images: ["/brand/rift-256.png"],
   },
@@ -68,7 +68,7 @@ const jsonLd = {
   operatingSystem: "macOS 14+",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   description:
-    "A native macOS YouTube Music client with a Dynamic Island, offline downloads, on-device lyrics and local-only stats.",
+    "A native macOS YouTube Music client with a Dynamic Island on every Mac, encrypted listening rooms, a desktop widget, sing-along lyrics, offline downloads and local-only stats.",
   url: "https://rift-music-app.vercel.app",
   license: "https://www.gnu.org/licenses/gpl-3.0.html",
 };

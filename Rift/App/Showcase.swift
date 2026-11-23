@@ -36,9 +36,9 @@ enum ShowcaseData {
         URL(string: "https://yt3.googleusercontent.com/\(id)=w544-h544-l90-rj")
     }
     static let nowPlaying = PlayableTrack(
-        id: "zg95do1LTdk", title: "Dive", artist: "Ed Sheeran",
-        artworkURL: art("xpDEOr2TeqEn1QpXosXhqtj149FzNnTgAG3oqPnpTxTbQk-oceO90Sz4Axq0s4Jp_QLGQha_um6_EG3WGQ"),
-        duration: 238)
+        id: "yO8fk8FzpHA", title: "Safarnama", artist: "AUR",
+        artworkURL: art("PMEPNYaZJN5_rnW5rA_ledKyWQb0Th6HgXD4hOcCcv8XUt4ys5It_MNzjnmB9oyw4cwCaBXhqh9t69ji"),
+        duration: 224)
     static let upNext: [PlayableTrack] = [
         PlayableTrack(id: "i1IDh_ZoJgI", title: "Alag Aasmaan", artist: "Anuv Jain",
                       artworkURL: art("XSFFKq9eWgpI4jKsD7luwyqpCgAYkIapEAV-92HNIoOrFj7KfTySAmr8n0s_LJMXfDQFS370iVxN7fXg"), duration: 176),
@@ -52,12 +52,12 @@ enum ShowcaseData {
     static let artist = MusicCard(id: "UC0C-w0YjGpqDXGB8IHb662A", kind: .artist,
                                   title: "Ed Sheeran", subtitle: "Artist", artworkURL: nil)
 
-    /// A player frozen mid-track (1:17 of 3:58), playing.
+    /// A player frozen mid-track (1:17 of 3:44), playing.
     @MainActor static func makePlayer() -> PlayerController {
         let source = ShowcaseSource()
         let player = PlayerController(source: source)
         player.play(nowPlaying, in: [nowPlaying] + upNext)
-        source.durationSubject.send(238)
+        source.durationSubject.send(224)
         source.timeSubject.send(77)
         source.stateSubject.send(.playing)
         return player
@@ -68,7 +68,7 @@ enum ShowcaseData {
 private final class ShowcaseSource: PlaybackSource {
     let stateSubject = CurrentValueSubject<PlaybackState, Never>(.playing)
     let timeSubject = CurrentValueSubject<TimeInterval, Never>(77)
-    let durationSubject = CurrentValueSubject<TimeInterval, Never>(238)
+    let durationSubject = CurrentValueSubject<TimeInterval, Never>(224)
     var state: AnyPublisher<PlaybackState, Never> { stateSubject.eraseToAnyPublisher() }
     var currentTime: AnyPublisher<TimeInterval, Never> { timeSubject.eraseToAnyPublisher() }
     var duration: AnyPublisher<TimeInterval, Never> { durationSubject.eraseToAnyPublisher() }
