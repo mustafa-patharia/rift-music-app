@@ -30,7 +30,7 @@ export function Hero() {
   return (
     <header className="hero" id="top">
       <div className="hero-copy">
-      <h1 className="reveal">A player for all<br /> your music.</h1>
+      <h1 className="reveal">YouTube Music,<br /> made for the Mac.</h1>
       <p className="hero-sub reveal">
         A native Mac app for YouTube Music. A Dynamic Island on every Mac, listening rooms
         with friends, lyrics you can sing along to, and downloads for when you&rsquo;re offline.
@@ -192,6 +192,95 @@ export function Privacy() {
       <ul className="privacy-points reveal">
         <li>No telemetry</li><li>No analytics</li><li>Keychain-only credentials</li><li>Encrypted rooms</li>
       </ul>
+    </section>
+  );
+}
+
+/* 08b: COMPARE. Facts each project states on its own page; no scoring of others. */
+const APPS = [
+  { name: "Rift Music App", built: "Native SwiftUI", macos: "14 Sonoma", license: "GPL-3.0", self: true },
+  { name: "Kaset", built: "Native SwiftUI", macos: "15.4", license: "MIT" },
+  { name: "Tubemac", built: "Swift window around the YouTube Music website", macos: "14 Sonoma", license: "Open source" },
+  { name: "YTM Desktop", built: "Cross-platform (Electron)", macos: "Not listed", license: "GPL-3.0" },
+  { name: "Pear Desktop", built: "Cross-platform (Electron)", macos: "Not listed", license: "MIT" },
+];
+
+export function Compare() {
+  return (
+    <section className="rail chorus compare" id="compare">
+      <p className="eyebrow reveal">Compare</p>
+      <h2 className="serif reveal">YouTube Music clients for Mac, side by side.</h2>
+      <p className="lede reveal">
+        Google doesn&rsquo;t make a YouTube Music app for macOS, so the community does. Here&rsquo;s how the
+        open-source options are built, and what Rift adds on top.
+      </p>
+      <div className="compare-wrap reveal">
+        <table className="compare-table">
+          <caption className="sr-only">YouTube Music apps for Mac compared</caption>
+          <thead>
+            <tr><th scope="col">App</th><th scope="col">Built with</th><th scope="col">Minimum macOS</th><th scope="col">License</th></tr>
+          </thead>
+          <tbody>
+            {APPS.map((a) => (
+              <tr key={a.name} className={a.self ? "is-self" : undefined}>
+                <th scope="row">{a.name}</th><td>{a.built}</td><td>{a.macos}</td><td>{a.license}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="compare-adds reveal">
+        <h3>Built into Rift</h3>
+        <ul>
+          <li>Dynamic Island on every Mac</li><li>Encrypted listening rooms</li><li>Desktop widget</li>
+          <li>Offline downloads</li><li>Synced lyrics with AI sing-along</li><li>Local-only listening stats</li>
+        </ul>
+      </div>
+      <p className="compare-note reveal">From each project&rsquo;s own README or website, November 2026.</p>
+    </section>
+  );
+}
+
+/* 08c: FAQ (native <details>, mirrored in FAQPage structured data) */
+const FAQ = [
+  { q: "Is there a YouTube Music app for Mac?",
+    a: "Google doesn't offer a native YouTube Music app for macOS, only the website. Rift Music App is an independent, free and open-source native Mac app for YouTube Music." },
+  { q: "Is Rift Music App free?",
+    a: "Yes. It's free and open source under the GPL-3.0 license, with no ads and no in-app purchases." },
+  { q: "Do I need a Google account?",
+    a: "No. Anonymous mode lets you search and play without signing in. Sign in with Google to bring your playlists, likes and recommendations, with two-way sync." },
+  { q: "Which macOS version do I need?",
+    a: "macOS 14 Sonoma or later." },
+  { q: "Does the Dynamic Island work on Macs without a notch?",
+    a: "Yes. It lives in the notch when your Mac has one. On other Macs, Rift draws a slim island at the top of the screen." },
+  { q: "Can I listen offline?",
+    a: "Yes. Download songs to keep them on your Mac, and recently played streams are cached for instant replay." },
+  { q: "Does Rift collect my data?",
+    a: "No. There's no telemetry or analytics. History and stats are stored on your Mac, and credentials live only in the macOS Keychain." },
+  { q: "Is Rift affiliated with Google or YouTube?",
+    a: "No. Rift Music App is an independent open-source project and is not affiliated with, endorsed by, or connected to Google LLC or YouTube." },
+];
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map(({ q, a }) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+};
+
+export function Faq() {
+  return (
+    <section className="rail chorus faq" id="faq">
+      <p className="eyebrow reveal">FAQ</p>
+      <h2 className="serif reveal">Questions, answered.</h2>
+      <div className="faq-list reveal">
+        {FAQ.map(({ q, a }) => (
+          <details key={q}>
+            <summary>{q}</summary>
+            <p>{a}</p>
+          </details>
+        ))}
+      </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     </section>
   );
 }

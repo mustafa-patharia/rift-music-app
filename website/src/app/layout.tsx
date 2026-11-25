@@ -19,7 +19,7 @@ const grotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rift-music-app.vercel.app"),
-  title: "Rift Music App: a native Mac app for YouTube Music",
+  title: "Rift Music App: the free, native YouTube Music app for Mac",
   description:
     "Rift Music App is a free, open-source, native macOS app for YouTube Music: a Dynamic Island on every Mac, listening rooms with friends, a desktop widget, sing-along lyrics, offline downloads and local-only stats.",
   icons: {
@@ -32,21 +32,19 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
-  keywords: ["Rift Music App", "YouTube Music", "macOS", "Mac music player", "SwiftUI", "Dynamic Island", "native"],
+  keywords: ["Rift Music App", "YouTube Music app for Mac", "YouTube Music client", "YouTube Music desktop app", "macOS", "Mac music player", "SwiftUI", "Dynamic Island", "open source"],
   applicationName: "Rift Music App",
   openGraph: {
-    title: "Rift Music App: a native Mac app for YouTube Music",
+    title: "Rift Music App: the free, native YouTube Music app for Mac",
     description: "All your music. One native Mac player.",
     type: "website",
     url: "https://rift-music-app.vercel.app",
     siteName: "Rift Music App",
-    images: ["/brand/rift-256.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rift Music App: a native Mac app for YouTube Music",
+    title: "Rift Music App: the free, native YouTube Music app for Mac",
     description: "All your music. One native Mac player.",
-    images: ["/brand/rift-256.png"],
   },
 };
 

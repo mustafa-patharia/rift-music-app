@@ -3726,3 +3726,92 @@ body {
     transition: none;
   }
 }
+
+/* ---- compare + faq ---- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.compare-wrap {
+  margin-top: 48px;
+  overflow-x: auto;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--inset-hi);
+}
+.compare-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: .95rem;
+  text-align: left;
+}
+.compare-table th,
+.compare-table td {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: top;
+}
+.compare-table thead th {
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.compare-table tbody th { font-weight: 600; white-space: nowrap; }
+.compare-table td { color: var(--ink-2); }
+.compare-table tbody tr:last-child > * { border-bottom: 0; }
+.compare-table tr.is-self { background: var(--accent-soft); }
+.compare-table tr.is-self th { color: var(--accent); }
+.compare-table tr.is-self td { color: var(--ink); }
+
+.compare-adds { margin-top: 40px; }
+.compare-adds h3 { margin-bottom: 14px; }
+.compare-adds ul {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  list-style: none; padding: 0; margin: 0;
+}
+.compare-adds li {
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: .9rem;
+  color: var(--ink-2);
+}
+.compare-note { margin-top: 20px; font-size: .82rem; color: var(--ink-3); }
+
+.faq-list {
+  margin-top: 40px;
+  max-width: 760px;
+  border-top: 1px solid var(--hairline);
+}
+.faq-list details { border-bottom: 1px solid var(--hairline); }
+.faq-list summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 44px;
+  padding: 20px 0;
+  font-size: clamp(1.02rem, 1.5vw, 1.15rem);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after {
+  content: "+";
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--ink-3);
+  transition: transform var(--dur) var(--ease-out-expo);
+}
+.faq-list details[open] summary::after { transform: rotate(45deg); }
+.faq-list summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.faq-list details p {
+  padding: 0 0 22px;
+  max-width: 62ch;
+  color: var(--ink-2);
+}

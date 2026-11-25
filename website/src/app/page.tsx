@@ -1,7 +1,7 @@
 import { Nav, Scrubber, Footer } from "@/components/Chrome";
 import {
   Hero, ProofBand, Statement, ProductShot, Features,
-  Notch, Native, Privacy, MoreToCome, Install,
+  Notch, Native, Privacy, Compare, Faq, MoreToCome, Install,
 } from "@/components/Sections";
 import Together from "@/components/Together";
 import SoundField from "@/components/SoundField";
@@ -27,6 +27,8 @@ export default function Page() {
         <Notch />
         <Native />
         <Privacy />
+        <Compare />
+        <Faq />
         <MoreToCome />
         <Install />
       </main>
