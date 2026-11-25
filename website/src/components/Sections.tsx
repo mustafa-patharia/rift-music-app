@@ -6,25 +6,6 @@ import Turntable from "./Turntable";
 import NotchDemo from "./NotchDemo";
 import { RELEASE, REL_VERSION } from "@/lib/config";
 
-// Dense scrolling waveform. Deterministic heights (no Math.random → no hydration
-// mismatch). Bars rendered twice so the translateX(-50%) loop has no seam.
-function WaveStrip({ bars = 46 }: { bars?: number }) {
-  const set = Array.from({ length: bars }, (_, i) => {
-    // Deterministic pseudo-randomness to avoid hydration mismatch
-    const seed = Math.sin(i * 9999) * 10000;
-    const random = seed - Math.floor(seed);
-    const h = 16 + Math.round(84 * random);
-    return { h: Math.min(100, h), hot: true };
-  });
-  const row = (k: string) =>
-    set.map((b, i) => <i key={`${k}-${i}`} className={b.hot ? "hot" : ""} style={{ height: `${b.h}%` }} />);
-  return (
-    <div className="wave" aria-hidden>
-      <div className="wave-row">{row("a")}{row("b")}</div>
-    </div>
-  );
-}
-
 /* 01: HERO */
 export function Hero() {
   return (
@@ -134,6 +115,16 @@ export function Features() {
           <h3>AI, your choice</h3>
           <p>On-device, or your own key. Off until you turn it on.</p>
         </article>
+        <article className="cell span12 privacy-cell reveal" id="privacy">
+          <Lock className="lock" />
+          <div>
+            <h3>Private by default</h3>
+            <p>History, stats, likes and playlists stay on your Mac. Credentials live only in the macOS Keychain, and listening rooms are end-to-end encrypted.</p>
+            <ul className="privacy-points">
+              <li>No telemetry</li><li>No analytics</li><li>Keychain-only credentials</li><li>Encrypted rooms</li>
+            </ul>
+          </div>
+        </article>
       </div>
     </section>
   );
@@ -178,65 +169,72 @@ export function Native() {
   );
 }
 
-/* 08: PRIVACY */
-export function Privacy() {
-  return (
-    <section className="rail verse" id="privacy">
-      <Lock className="lock reveal" />
-      <h2 className="serif reveal">Your listening stays<br /> on your Mac.</h2>
-      <p className="lede reveal" data-lightup>
-        History, stats, likes and playlists are stored and worked out locally. No telemetry, no analytics.
-        Credentials live in the macOS Keychain and nowhere else. Listening rooms are end-to-end encrypted,
-        so the relays in between only ever see ciphertext.
-      </p>
-      <ul className="privacy-points reveal">
-        <li>No telemetry</li><li>No analytics</li><li>Keychain-only credentials</li><li>Encrypted rooms</li>
-      </ul>
-    </section>
-  );
-}
-
-/* 08b: COMPARE. Facts each project states on its own page; no scoring of others. */
-const APPS = [
-  { name: "Rift Music App", built: "Native SwiftUI", macos: "14 Sonoma", license: "GPL-3.0", self: true },
-  { name: "Kaset", built: "Native SwiftUI", macos: "15.4", license: "MIT" },
-  { name: "Tubemac", built: "Swift window around the YouTube Music website", macos: "14 Sonoma", license: "Open source" },
-  { name: "YTM Desktop", built: "Cross-platform (Electron)", macos: "Not listed", license: "GPL-3.0" },
-  { name: "Pear Desktop", built: "Cross-platform (Electron)", macos: "Not listed", license: "MIT" },
+/* 08b: COMPARE. Feature matrix. Others are marked only from what their own
+   README/site states ("—" = not listed there), never guessed. */
+type Mark = "yes" | "plugin" | "no";
+const COLS = ["Rift", "Kaset", "Tubemac", "YTM Desktop", "Pear Desktop"];
+const ROWS: { f: string; d: string; m: Mark[] }[] = [
+  { f: "Dynamic Island", d: "In the notch, or drawn on Macs without one", m: ["yes", "no", "no", "no", "no"] },
+  { f: "Listen together", d: "End-to-end encrypted rooms, no account", m: ["yes", "no", "no", "no", "plugin"] },
+  { f: "Offline downloads", d: "Keep songs on your Mac", m: ["yes", "no", "no", "no", "plugin"] },
+  { f: "Desktop widget", d: "Now Playing with controls on the desktop", m: ["yes", "no", "no", "no", "no"] },
+  { f: "Synced lyrics", d: "Line-by-line, in time with the song", m: ["yes", "yes", "no", "no", "plugin"] },
+  { f: "AI sing-along lyrics", d: "Same words, rewritten in a script you can read", m: ["yes", "no", "no", "no", "no"] },
+  { f: "Listening stats", d: "Top songs, artists and hours, kept on your Mac", m: ["yes", "no", "no", "no", "no"] },
+  { f: "Play without signing in", d: "Anonymous mode, browse and play", m: ["yes", "no", "no", "no", "no"] },
 ];
+
+function MarkCell({ m }: { m: Mark }) {
+  if (m === "yes")
+    return (
+      <td className="mk yes">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span className="sr-only">Yes</span>
+      </td>
+    );
+  if (m === "plugin") return <td className="mk plugin">Plugin</td>;
+  return <td className="mk no"><span aria-hidden>—</span><span className="sr-only">Not listed</span></td>;
+}
 
 export function Compare() {
   return (
     <section className="rail chorus compare" id="compare">
       <p className="eyebrow reveal">Compare</p>
-      <h2 className="serif reveal">YouTube Music clients for Mac, side by side.</h2>
+      <h2 className="serif reveal">More in the box than any other Mac client.</h2>
       <p className="lede reveal">
-        Google doesn&rsquo;t make a YouTube Music app for macOS, so the community does. Here&rsquo;s how the
-        open-source options are built, and what Rift adds on top.
+        Google doesn&rsquo;t make a YouTube Music app for macOS. Here&rsquo;s what the open-source options
+        give you, feature by feature. With Rift, it&rsquo;s all built in: nothing to add on.
       </p>
       <div className="compare-wrap reveal">
         <table className="compare-table">
-          <caption className="sr-only">YouTube Music apps for Mac compared</caption>
+          <caption className="sr-only">Features of YouTube Music apps for Mac</caption>
           <thead>
-            <tr><th scope="col">App</th><th scope="col">Built with</th><th scope="col">Minimum macOS</th><th scope="col">License</th></tr>
+            <tr>
+              <th scope="col">Feature</th>
+              {COLS.map((c, i) => <th scope="col" key={c} className={i === 0 ? "is-self" : undefined}>{c}</th>)}
+            </tr>
           </thead>
           <tbody>
-            {APPS.map((a) => (
-              <tr key={a.name} className={a.self ? "is-self" : undefined}>
-                <th scope="row">{a.name}</th><td>{a.built}</td><td>{a.macos}</td><td>{a.license}</td>
+            {ROWS.map((r) => (
+              <tr key={r.f}>
+                <th scope="row"><b>{r.f}</b><span>{r.d}</span></th>
+                {r.m.map((m, i) => <MarkCell key={COLS[i]} m={m} />)}
               </tr>
             ))}
+            <tr className="row-meta">
+              <th scope="row"><b>Runs on</b><span>Minimum macOS</span></th>
+              <td className="mk yes-text">14 Sonoma</td><td className="mk">15.4</td><td className="mk">14 Sonoma</td><td className="mk">—</td><td className="mk">—</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div className="compare-adds reveal">
-        <h3>Built into Rift</h3>
-        <ul>
-          <li>Dynamic Island on every Mac</li><li>Encrypted listening rooms</li><li>Desktop widget</li>
-          <li>Offline downloads</li><li>Synced lyrics with AI sing-along</li><li>Local-only listening stats</li>
-        </ul>
+      <p className="compare-note reveal">
+        &ldquo;Plugin&rdquo; means an add-on you install and set up. &ldquo;—&rdquo; means the feature isn&rsquo;t
+        listed on that project&rsquo;s own README or website (checked November 2026).
+      </p>
+      <div className="key-row reveal" style={{ marginTop: 32 }}>
+        <a className="cta" data-release-link href={RELEASE}><Download /> Get Rift free</a>
       </div>
-      <p className="compare-note reveal">From each project&rsquo;s own README or website, November 2026.</p>
     </section>
   );
 }
@@ -285,28 +283,13 @@ export function Faq() {
   );
 }
 
-/* 09: WHERE IT'S GOING */
-export function MoreToCome() {
-  return (
-    <section className="rail chorus mtc" id="more">
-      <p className="eyebrow reveal">Where this is going</p>
-      <h2 className="serif reveal">The YouTube Music app the Mac deserved.</h2>
-      <p className="value reveal">
-        Your full catalog, your playlists and likes, real recommendations and two-way sync, in a Mac app
-        that behaves like one. More is on the way.
-      </p>
-      <div className="teaser-wave reveal"><WaveStrip /></div>
-    </section>
-  );
-}
-
 /* 10: DOWNLOAD (the one ending: get it, or star it) */
 export function Install() {
   return (
     <section className="rail chorus" id="download">
       <div className="install-card reveal">
-        <h2 className="serif" style={{ maxWidth: "18ch", marginInline: "auto" }}>Download, drag to Applications, done.</h2>
-        <p className="lede" style={{ marginInline: "auto" }}>Free and open source. Version 1.1 adds listening rooms, a desktop widget and an island on every Mac.</p>
+        <h2 className="serif" style={{ maxWidth: "18ch", marginInline: "auto" }}>Get Rift. It&rsquo;s free.</h2>
+        <p className="lede" style={{ marginInline: "auto" }}>Open source, no ads, no account needed. Version 1.1 adds listening rooms, a desktop widget and an island on every Mac.</p>
         <div className="key-row">
           <a className="cta" data-release-link href={RELEASE}><Download /> Download for macOS <span className="release-version">{REL_VERSION}</span></a>
           <StarButton />

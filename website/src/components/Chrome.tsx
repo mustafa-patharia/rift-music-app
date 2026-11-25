@@ -14,8 +14,8 @@ export function Nav() {
       </Link>
       <div className="pn-links">
         <Link href="/#features">Features</Link>
-        <Link href="/#privacy">Privacy</Link>
-        <Link href="/#more">More</Link>
+        <Link href="/#compare">Compare</Link>
+        <Link href="/#faq">FAQ</Link>
         <Link href="/changelog">Changelog</Link>
       </div>
       <div className="pn-right">

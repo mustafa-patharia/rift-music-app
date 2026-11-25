@@ -3743,53 +3743,61 @@ body {
 }
 .compare-table {
   width: 100%;
-  min-width: 560px;
+  min-width: 720px;
   border-collapse: collapse;
   font-size: .95rem;
   text-align: left;
 }
 .compare-table th,
 .compare-table td {
-  padding: 16px 22px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--hairline);
-  vertical-align: top;
+  vertical-align: middle;
 }
 .compare-table thead th {
   font-size: .78rem;
   font-weight: 600;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--ink-3);
+  text-align: center;
+  white-space: nowrap;
 }
-.compare-table tbody th { font-weight: 600; white-space: nowrap; }
-.compare-table td { color: var(--ink-2); }
+.compare-table thead th:first-child { text-align: left; }
+.compare-table tbody th {
+  position: sticky; left: 0; z-index: 1;
+  background: var(--bg-raise);
+  min-width: 220px;
+}
+.compare-table tbody th b { display: block; font-weight: 600; }
+.compare-table tbody th span { display: block; margin-top: 3px; font-size: .82rem; font-weight: 400; color: var(--ink-3); }
 .compare-table tbody tr:last-child > * { border-bottom: 0; }
-.compare-table tr.is-self { background: var(--accent-soft); }
-.compare-table tr.is-self th { color: var(--accent); }
-.compare-table tr.is-self td { color: var(--ink); }
-
-.compare-adds { margin-top: 40px; }
-.compare-adds h3 { margin-bottom: 14px; }
-.compare-adds ul {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  list-style: none; padding: 0; margin: 0;
-}
-.compare-adds li {
-  padding: 8px 14px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--hairline);
-  background: var(--surface);
-  font-size: .9rem;
-  color: var(--ink-2);
-}
+/* Rift column highlighted top to bottom */
+.compare-table th.is-self,
+.compare-table tr > td:nth-child(2) { background: var(--accent-soft); }
+.compare-table th.is-self { color: var(--accent); }
+.compare-table .mk { text-align: center; color: var(--ink-3); white-space: nowrap; }
+.compare-table .mk.yes { color: var(--ink); }
+.compare-table tr > td.mk.yes:nth-child(2) { color: var(--accent); }
+.compare-table .mk.yes svg { display: inline-block; vertical-align: middle; }
+.compare-table .mk.plugin { font-size: .8rem; color: var(--ink-2); }
+.compare-table .mk.yes-text { color: var(--ink); font-weight: 600; }
+.compare-table tr.row-meta .mk { font-size: .88rem; }
 .compare-note { margin-top: 20px; font-size: .82rem; color: var(--ink-3); }
 
+.faq { text-align: center; }
 .faq-list {
-  margin-top: 40px;
-  max-width: 760px;
-  border-top: 1px solid var(--hairline);
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 48px;
+  align-items: start;
+  text-align: left;
 }
-.faq-list details { border-bottom: 1px solid var(--hairline); }
+@media (max-width: 760px) {
+  .faq-list { grid-template-columns: 1fr; }
+}
+.faq-list details { border-top: 1px solid var(--hairline); }
 .faq-list summary {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   min-height: 44px;
@@ -3814,4 +3822,24 @@ body {
   padding: 0 0 22px;
   max-width: 62ch;
   color: var(--ink-2);
+}
+
+/* privacy, folded into the features grid as one full-width card */
+.span12 { grid-column: 1 / -1; }
+.cell.privacy-cell { flex-direction: row; align-items: flex-start; gap: 24px; min-height: 0; }
+.cell.privacy-cell .lock { flex: none; width: 40px; height: 40px; margin: 16px 0 0; }
+.cell.privacy-cell p { max-width: 70ch; }
+.cell.privacy-cell .privacy-points { justify-content: flex-start; margin: 18px 0 0; font-size: .9rem; }
+.cell.privacy-cell .privacy-points li:first-child { padding-left: 0; }
+@media (max-width: 560px) {
+  .cell.privacy-cell { flex-direction: column; gap: 0; }
+}
+.compare { text-align: center; }
+.compare .lede { margin-inline: auto; }
+.compare .compare-wrap { text-align: left; }
+.compare .key-row { justify-content: center; }
+@media (max-width: 560px) {
+  .compare-table { min-width: 600px; }
+  .compare-table tbody th { min-width: 150px; }
+  .compare-table th, .compare-table td { padding: 14px 12px; }
 }
